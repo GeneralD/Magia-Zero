@@ -17,6 +17,7 @@ namespace Zero {
         public static void Open() {
             var window = GetWindow<SummonWindow>(title: "Summon");
             window.ShowTab();
+            window.minSize = new Vector2(450, 600);
         }
 
         private void OnEnable() {
@@ -24,7 +25,6 @@ namespace Zero {
             var root = rootVisualElement;
             visualTree.CloneTree(root);
             root.Bind(new SerializedObject(this));
-
             root.Q<Button>("executeButton").clicked += OnExecuteButtonClicked;
         }
 
