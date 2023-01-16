@@ -1,11 +1,26 @@
-.main_container {
-    border-radius: 8px;
+.unity-box {
+    border-radius: 16px;
     background-color: rgba(0, 255, 170, 0.15);
-    padding: 8px;
+    padding: 12px;
     margin: 12px;
 }
 
-.main_container * {
+.unity-button {
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.unity-base-field__input {
+    padding-left: 8px;
+    padding-right: 8px;
     border-radius: 8px;
-    margin: 2px;
+}
+
+.unity-toggle * {
+    border-radius: 2px;
+}
+
+.box_title {
+    font-size: 16px;
+    padding: 8px;
 }

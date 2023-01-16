@@ -6,6 +6,13 @@ using UnityEngine.UIElements;
 namespace Zero {
     public class SummonWindow : EditorWindow {
         [SerializeField] private GameObject rootObject;
+        [SerializeField] private string outputDirectoryUri = "~Downloads/Zero";
+        [SerializeField] private string vrmOutputDirectoryName = "VRMs";
+        [SerializeField] [Min(0)] private int startIndex = 1;
+        [SerializeField] [Min(0)] private int quantity = 10;
+        [SerializeField] private bool overwriteExist = false;
+        [SerializeField] private string nameFormat = "%d";
+        [SerializeField] private bool hashName = false;
 
         public static void Open() {
             var window = GetWindow<SummonWindow>(title: "Summon");
