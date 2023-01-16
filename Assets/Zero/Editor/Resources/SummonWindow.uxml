@@ -5,7 +5,13 @@
         xmlns:editor="UnityEditor.UIElements">
     <engine:Style src="SummonWindow.uss"/>
     <engine:Box class="main_container">
-        <engine:Label text="Root"/>
-        <editor:ObjectField/>
+        <engine:Label text="Input Settings"/>
+        <editor:ObjectField label="Root Object"
+                            type="UnityEngine.GameObject, UnityEngine.CoreModule"
+                            binding-path="rootObject"
+                            allow-scene-objects="false"/>
+        <engine:Button
+                text="Summon"
+                name="executeButton"/>
     </engine:Box>
 </engine:UXML>
