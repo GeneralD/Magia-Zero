@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 
 namespace Zero {
@@ -18,7 +19,10 @@ namespace Zero {
 
         public void Generate() {
             if (!IsValid) return;
-            Debug.Log(rootObject.name);
+
+            var instance = Instantiate(rootObject);
+            var children = instance.transform.Cast<Transform>();
+            Debug.Log(string.Join(", ", children.Select(t => t.name)));
         }
 
         private bool IsValid =>

@@ -3,6 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xmlns:engine="UnityEngine.UIElements"
         xmlns:editor="UnityEditor.UIElements">
+    <engine:Style src="Common.uss"/>
     <engine:Style src="GeneratorInspector.uss"/>
     <engine:Box class="main_container">
         <engine:VisualElement class="settings">
@@ -34,12 +35,12 @@
         <engine:VisualElement class="rules">
             <engine:Box>
                 <engine:Label text="Rules" class="box_title"/>
-                <editor:PropertyField label="Rules" name="ruleObjectField" binding-path="rule"/>
+                <editor:PropertyField label="Rules" binding-path="rule"/>
             </engine:Box>
         </engine:VisualElement>
     </engine:Box>
 
     <engine:Button
             text="Summon"
-            name="executeButton"/>
+            name="execute_button"/>
 </engine:UXML>

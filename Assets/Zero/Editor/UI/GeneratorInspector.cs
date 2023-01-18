@@ -16,7 +16,7 @@ namespace GeneratorInspector {
             var ui = new VisualElement();
             _editorUXML.CloneTree(ui);
             ui.Bind(new SerializedObject(target));
-            ui.Q<Button>("executeButton").clicked += Generator.Generate;
+            ui.Q<Button>("execute_button").clicked += Generator.Generate;
             return ui;
         }
     }
