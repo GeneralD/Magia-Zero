@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements">
+    <engine:Style src="GeneratorInspector.uss"/>
+    <engine:Box class="main_container">
+        <engine:VisualElement class="settings">
+            <engine:Box>
+                <engine:Label text="Input" class="box_title"/>
+                <editor:ObjectField label="Root Object"
+                                    type="UnityEngine.GameObject, UnityEngine.CoreModule"
+                                    binding-path="rootObject"
+                                    allow-scene-objects="false"/>
+            </engine:Box>
+            <engine:Box>
+                <engine:Label text="Output" class="box_title"/>
+                <engine:TextField label="Output Directory" binding-path="outputDirectoryUri"/>
+                <engine:TextField label="VRM Directory Name" binding-path="vrmOutputDirectoryName"/>
+            </engine:Box>
+            <engine:Box>
+                <engine:Label text="Indices" class="box_title"/>
+                <editor:IntegerField label="Start Index" binding-path="startIndex"/>
+                <editor:IntegerField label="Quantity" binding-path="quantity"/>
+                <engine:Toggle label="Overwrite Exist" binding-path="overwriteExist"/>
+            </engine:Box>
+            <engine:Box>
+                <engine:Label text="Naming" class="box_title"/>
+                <engine:TextField label="Name Format" binding-path="nameFormat"/>
+                <engine:Toggle label="Encrypt Name" binding-path="hashName"/>
+            </engine:Box>
+        </engine:VisualElement>
+
+        <engine:VisualElement class="rules">
+            <engine:Box>
+                <engine:Label text="Rules" class="box_title"/>
+                <editor:PropertyField label="Rules" name="ruleObjectField" binding-path="rule"/>
+            </engine:Box>
+        </engine:VisualElement>
+    </engine:Box>
+
+    <engine:Button
+            text="Summon"
+            name="executeButton"/>
+</engine:UXML>
