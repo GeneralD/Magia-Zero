@@ -11,11 +11,21 @@
     border-radius: 8px;
 }
 
-.unity-toggle * {
-    border-radius: 2px;
-}
-
 .box_title {
     font-size: 16px;
+    -unity-font-style: bold;
     padding: 8px;
+}
+
+.button.unity-button {
+    border-radius: 12px;
+    padding: 4px;
+    margin: 12px;
+    background-color: rgba(70, 130, 180, 0.35);
+}
+
+.unity-toggle__text {
+    border-radius: 12px;
+    padding: 4px;
+    background-color: rgba(255, 255, 255, 0.15);
 }

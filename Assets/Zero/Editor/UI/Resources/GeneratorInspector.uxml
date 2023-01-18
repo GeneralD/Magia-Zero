@@ -42,5 +42,6 @@
 
     <engine:Button
             text="Summon"
+            class="button"
             name="execute_button"/>
 </engine:UXML>

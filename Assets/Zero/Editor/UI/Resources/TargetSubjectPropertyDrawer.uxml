@@ -6,11 +6,11 @@
     <engine:Style src="Common.uss"/>
     <engine:Style src="TargetSubjectPropertyDrawer.uss"/>
     <engine:Box>
-        <engine:Toggle label="Use Regex" binding-path="useRegex"/>
         <engine:TextField label="Name" binding-path="name"/>
+        <engine:Toggle label="Use Regex" binding-path="useRegex"/>
         <engine:Foldout text="Testing" value="false">
             <engine:TextField label="Test Text" name="test_text_field"/>
-            <engine:Button text="Try" name="test_regex_button"/>
+            <engine:Button text="Try" class="button" name="test_regex_button"/>
         </engine:Foldout>
     </engine:Box>
 </engine:UXML>
