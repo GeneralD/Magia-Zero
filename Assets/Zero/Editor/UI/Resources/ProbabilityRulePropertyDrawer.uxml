@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements">
+    <engine:Style src="Common.uss"/>
+    <engine:Style src="ProbabilityRulePropertyDrawer.uss"/>
+    <engine:Box>
+        <editor:PropertyField label="Target" binding-path="target"/>
+        <editor:DoubleField label="Weight" binding-path="weight"/>
+        <engine:Toggle label="Divide by matches" binding-path="divideByMatches"/>
+    </engine:Box>
+</engine:UXML>

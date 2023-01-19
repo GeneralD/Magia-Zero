@@ -5,6 +5,7 @@
         xmlns:editor="UnityEditor.UIElements">
     <engine:Style src="Common.uss"/>
     <engine:Style src="GeneratorInspector.uss"/>
+    <engine:Image class="logo"/>
     <engine:Box class="main_container">
         <engine:VisualElement class="settings">
             <engine:Box>

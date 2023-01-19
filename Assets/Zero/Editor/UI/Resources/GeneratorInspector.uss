@@ -1,11 +1,19 @@
 .settings .unity-box {
-    background-color: rgba(0, 255, 234, 0.25);
+    background-color: rgba(255, 0, 68, 0.2);
 }
 
 .rules .unity-box {
-    background-color: rgba(255, 72, 250, 0.25);
+    background-color: rgba(0, 255, 234, 0.2);
 }
 
 .main_container {
     background-color: rgba(0, 0, 0, 0.25);
+}
+
+.logo {
+    background-color: black;
+    --unity-image: resource("Images/logo");
+    border-radius: 16px;
+    padding: 0 8px 0 8px;
+    margin: 10px;
 }
