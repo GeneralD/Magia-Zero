@@ -4,7 +4,7 @@ MonoImporter:
   externalObjects: {}
   serializedVersion: 2
   defaultReferences:
-  - _editorUXML: {fileID: 9197481963319205126, guid: 9bedcf7757e93406fa8abc8d1453c0ee, type: 3}
+  - editorUxml: {fileID: 9197481963319205126, guid: 9bedcf7757e93406fa8abc8d1453c0ee, type: 3}
   executionOrder: 0
   icon: {instanceID: 0}
   userData: 

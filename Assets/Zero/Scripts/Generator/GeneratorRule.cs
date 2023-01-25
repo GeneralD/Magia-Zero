@@ -16,7 +16,7 @@ namespace Zero {
     [Serializable]
     public class TargetSubject {
         public string name;
-        public bool useRegex = false;
+        public bool useRegex = true;
         public RandomizationRule randomization;
     }
 
