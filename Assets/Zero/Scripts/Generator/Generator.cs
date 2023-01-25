@@ -36,35 +36,17 @@ namespace Zero {
                 instance.transform
                     .Cast<Transform>()
                     .Select(t => t.gameObject)
-                    .ToList()
                     .ForEach(ApplyRule);
                 return;
             }
 
             var children = instance.transform.Cast<Transform>().ToList();
+            var randomization = new RandomizationController<Transform>(nodeRule.randomization);
+            var (chosen, probability) = randomization.Elect(children, child => child.name);
 
-            var initDict = new Dictionary<Transform, double>();
-            foreach (var child in children) {
-                initDict[child] = 1;
-            }
-
-            var dictionary = nodeRule.randomization.probabilities.Aggregate(initDict,
-                (accum, probability) => {
-                    var matches = children.Where(child => probability.target.IsMatch(child.name)).ToList();
-                    var weight = probability.Weight(matches.Count());
-                    foreach (var match in matches) {
-                        var newValue = weight * accum.GetValueOrDefault(match, 1);
-                        accum[match] = newValue;
-                    }
-
-                    return accum;
-                });
-
-            var result = dictionary.WeightedRandom();
-            var item = result.Item1;
-            children.Remove(item);
+            children.Remove(chosen);
             children.Select(child => child.gameObject).ForEach(DestroyImmediate);
-            ApplyRule(item.gameObject);
+            ApplyRule(chosen.gameObject);
         }
     }
 }
