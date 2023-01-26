@@ -6,6 +6,6 @@ namespace Zero {
         private const string MenuPrefix = "Magia 零";
 
         [MenuItem(MenuPrefix + "/New Generator %#&0")]
-        private static void NewGenerator() => new GameObject("Generator").AddComponent<Generator>();
+        private static void NewGenerator() => new GameObject("Generator").AddComponent<Generator.Generator>();
     }
 }

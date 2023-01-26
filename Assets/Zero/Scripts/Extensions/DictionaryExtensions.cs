@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Zero.Utility;
 
-namespace Zero {
+namespace Zero.Extensions {
     public static class DictionaryExtensions {
         public static (TKey, double) WeightedRandom<TKey>(this IDictionary<TKey, double> dictionary) {
             var totalWeight = dictionary.Values.Aggregate(0d, (l, r) => l + r);

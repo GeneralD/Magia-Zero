@@ -1,9 +1,8 @@
 ﻿using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
-using UnityEngine.Serialization;
 using UnityEngine.UIElements;
-using Zero;
+using Zero.Generator;
 
 namespace GeneratorInspector {
     [CustomEditor(typeof(Generator))]

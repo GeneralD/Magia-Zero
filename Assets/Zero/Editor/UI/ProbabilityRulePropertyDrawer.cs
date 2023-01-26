@@ -2,7 +2,7 @@ using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
 using UnityEngine.UIElements;
-using Zero;
+using Zero.Generator.Entity;
 
 [CustomPropertyDrawer(typeof(ProbabilityRule))]
 public class ProbabilityRulePropertyDrawer : PropertyDrawer {

@@ -1,8 +1,10 @@
-using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Zero.Generator.Entity;
+using Zero.Extensions;
+using Zero.Generator.Randomization;
 
-namespace Zero {
+namespace Zero.Generator {
     public class Generator : MonoBehaviour {
         [SerializeField] internal GameObject rootObject;
         [SerializeField] internal string outputDirectoryUri = "~Downloads/Zero";

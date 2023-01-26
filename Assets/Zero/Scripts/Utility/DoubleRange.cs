@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Zero {
+namespace Zero.Utility {
     public readonly struct DoubleRange {
         public readonly double Lower;
         public readonly double Upper;
