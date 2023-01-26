@@ -8,6 +8,7 @@
     <engine:Box>
         <engine:TextField label="Name" binding-path="name"/>
         <engine:Toggle label="Use Regex" binding-path="useRegex"/>
+        <engine:Toggle label="Invert Match" binding-path="invertMatch"/>
         <engine:Foldout text="Testing" value="false">
             <engine:TextField label="Test Text" name="test_text_field"/>
             <engine:Button text="Try" class="button" name="test_regex_button"/>
