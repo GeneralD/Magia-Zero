@@ -634,8 +634,14 @@ $RECYCLE.BIN/
 
 
 
-# Common
+### Common
 *.sln.DotSettings
+
+# ignore Assets other than about Zero
 Assets/*
+Assets/Scripts/*
+Assets/Editor/*
+!Assets/Scripts
+!Assets/Editor
 !Assets/Scripts/Zero
 !Assets/Editor/Zero
