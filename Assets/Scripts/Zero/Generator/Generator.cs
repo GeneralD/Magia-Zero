@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Zero.Extensions;
+using Zero.Generator.Combination;
 using Zero.Generator.Entity;
 using Zero.Generator.Randomization;
 
@@ -24,11 +25,10 @@ namespace Zero.Generator {
             if (!IsValid) return;
 
             GeneratedInstances(rootObject)
-                .Take((int)quantity)
-                .Select((o, i) => new { generated = o, index = i + startIndex })
+                .Zip(Indices, (generated, index) => (generated, index))
                 .ForEach(v => {
                     // TODO: Export as a VRM
-                    Debug.Log($"Export index: {v.index}.");
+                    v.generated.name += $" ({v.index})";
                 });
         }
 
@@ -38,12 +38,23 @@ namespace Zero.Generator {
             !string.IsNullOrEmpty(vrmOutputDirectoryName) &&
             !string.IsNullOrEmpty(nameFormat);
 
+        private IEnumerable<int> Indices =>
+            Enumerable.Range((int)startIndex, (int)quantity);
+
         private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
+            // Automatically destroy all generated things as soon as operation is done
+            using var temporary = new DisposableContainerWrapper(new GameObject("Container"));
+
+            var randomizationApplier = new RandomizationApplier(rule.randomizationRules);
+            var combinationChecker = new CombinationChecker(rule.combinationRules);
+
             while (true) {
-                var instance = Instantiate(sample);
-                new RandomizationApplier(rule.randomizationRules).ApplyRandomization(instance);
-                yield return instance;
+                var instance = Instantiate(sample, temporary.Container.transform);
+                randomizationApplier.ApplyRandomization(instance);
+                if (combinationChecker.IsValid(instance)) yield return instance;
+                else DestroyImmediate(instance);
             }
+            // ReSharper disable once IteratorNeverReturns
         }
     }
 }
