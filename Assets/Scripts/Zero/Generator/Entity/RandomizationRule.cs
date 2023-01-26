@@ -1,5 +1,4 @@
 using System;
-using UnityEngine.Serialization;
 
 namespace Zero.Generator.Entity {
     [Serializable]

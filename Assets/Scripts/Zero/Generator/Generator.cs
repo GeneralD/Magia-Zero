@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using Zero.Generator.Entity;
 using Zero.Extensions;
+using Zero.Generator.Entity;
 using Zero.Generator.Randomization;
 
 namespace Zero.Generator {
@@ -22,8 +23,13 @@ namespace Zero.Generator {
         public void Generate() {
             if (!IsValid) return;
 
-            var instance = Instantiate(rootObject);
-            new RandomizationApplier(rule.randomizationRules).ApplyRandomization(instance);
+            GeneratedInstances(rootObject)
+                .Take((int)quantity)
+                .Select((o, i) => new { generated = o, index = i + startIndex })
+                .ForEach(v => {
+                    // TODO: Export as a VRM
+                    Debug.Log($"Export index: {v.index}.");
+                });
         }
 
         private bool IsValid =>
@@ -31,5 +37,13 @@ namespace Zero.Generator {
             !string.IsNullOrEmpty(outputDirectoryUri) &&
             !string.IsNullOrEmpty(vrmOutputDirectoryName) &&
             !string.IsNullOrEmpty(nameFormat);
+
+        private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
+            while (true) {
+                var instance = Instantiate(sample);
+                new RandomizationApplier(rule.randomizationRules).ApplyRandomization(instance);
+                yield return instance;
+            }
+        }
     }
 }
