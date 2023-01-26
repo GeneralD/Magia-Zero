@@ -23,7 +23,7 @@ namespace Zero.Generator {
             if (!IsValid) return;
 
             var instance = Instantiate(rootObject);
-            ApplyRule(instance);
+            new RandomizationApplier(rule.randomizationRules).ApplyRandomization(instance);
         }
 
         private bool IsValid =>
@@ -31,24 +31,5 @@ namespace Zero.Generator {
             !string.IsNullOrEmpty(outputDirectoryUri) &&
             !string.IsNullOrEmpty(vrmOutputDirectoryName) &&
             !string.IsNullOrEmpty(nameFormat);
-
-        private void ApplyRule(GameObject instance) {
-            var randomizationRule = rule.randomizationRules.FirstOrDefault(node => node.target.IsMatch(instance.name));
-            if (randomizationRule == null) {
-                instance.transform
-                    .Cast<Transform>()
-                    .Select(t => t.gameObject)
-                    .ForEach(ApplyRule);
-                return;
-            }
-
-            var children = instance.transform.Cast<Transform>().ToList();
-            var randomization = new RandomizationController<Transform>(randomizationRule);
-            var (chosen, probability) = randomization.Elect(children, child => child.name);
-
-            children.Remove(chosen);
-            children.Select(child => child.gameObject).ForEach(DestroyImmediate);
-            ApplyRule(chosen.gameObject);
-        }
     }
 }
