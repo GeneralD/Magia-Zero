@@ -637,5 +637,5 @@ $RECYCLE.BIN/
 # Common
 *.sln.DotSettings
 Assets/*
-!Assets/Zero
-!Assets/Zero.meta
+!Assets/Scripts/Zero/
+!Assets/Editor/Zero/
