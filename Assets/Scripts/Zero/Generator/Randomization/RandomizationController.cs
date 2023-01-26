@@ -18,7 +18,7 @@ namespace Zero.Generator.Randomization {
                     return accum;
                 });
 
-            var dictionary = _rule.probabilities.Aggregate(initDict,
+            var dictionary = _rule.probabilityRules.Aggregate(initDict,
                 (accum, probability) => {
                     var matches = xs.Where(candidate => probability.target.IsMatch(candidateName(candidate))).ToList();
                     var weight = probability.Weight(matches.Count());

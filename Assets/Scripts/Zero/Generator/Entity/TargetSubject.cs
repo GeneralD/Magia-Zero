@@ -6,7 +6,6 @@ namespace Zero.Generator.Entity {
     public class TargetSubject {
         public string name;
         public bool useRegex = true;
-        public RandomizationRule randomization;
 
         public bool IsMatch(string text)
             => new Regex(useRegex ? name : $"^{name}$").IsMatch(text);

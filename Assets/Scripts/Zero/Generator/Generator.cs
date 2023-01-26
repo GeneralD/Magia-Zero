@@ -33,8 +33,8 @@ namespace Zero.Generator {
             !string.IsNullOrEmpty(nameFormat);
 
         private void ApplyRule(GameObject instance) {
-            var nodeRule = rule.nodes.FirstOrDefault(node => node.target.IsMatch(instance.name));
-            if (nodeRule == null) {
+            var randomizationRule = rule.randomizationRules.FirstOrDefault(node => node.target.IsMatch(instance.name));
+            if (randomizationRule == null) {
                 instance.transform
                     .Cast<Transform>()
                     .Select(t => t.gameObject)
@@ -43,7 +43,7 @@ namespace Zero.Generator {
             }
 
             var children = instance.transform.Cast<Transform>().ToList();
-            var randomization = new RandomizationController<Transform>(nodeRule.randomization);
+            var randomization = new RandomizationController<Transform>(randomizationRule);
             var (chosen, probability) = randomization.Elect(children, child => child.name);
 
             children.Remove(chosen);

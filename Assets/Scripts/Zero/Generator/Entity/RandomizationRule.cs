@@ -1,8 +1,10 @@
 using System;
+using UnityEngine.Serialization;
 
 namespace Zero.Generator.Entity {
     [Serializable]
     public class RandomizationRule {
-        public ProbabilityRule[] probabilities;
+        public TargetSubject target;
+        public ProbabilityRule[] probabilityRules;
     }
 }
