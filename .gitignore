@@ -645,3 +645,4 @@ Assets/Editor/*
 !Assets/Editor
 !Assets/Scripts/Zero
 !Assets/Editor/Zero
+!Assets/package.json
