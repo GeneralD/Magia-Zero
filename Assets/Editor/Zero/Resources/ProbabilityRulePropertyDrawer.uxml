@@ -5,7 +5,7 @@
         xmlns:editor="UnityEditor.UIElements">
     <engine:Style src="Common.uss"/>
     <engine:Style src="ProbabilityRulePropertyDrawer.uss"/>
-    <engine:Box>
+    <engine:Box class="probability">
         <editor:PropertyField label="Target" binding-path="target"/>
         <editor:DoubleField label="Weight" binding-path="weight"/>
         <engine:Toggle label="Divide by matches" binding-path="divideByMatches"/>

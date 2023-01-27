@@ -1,9 +1,5 @@
-.settings .unity-box {
+.settings.unity-box {
     background-color: rgba(255, 0, 68, 0.2);
-}
-
-.rules .unity-box {
-    background-color: rgba(0, 255, 234, 0.2);
 }
 
 .main_container {

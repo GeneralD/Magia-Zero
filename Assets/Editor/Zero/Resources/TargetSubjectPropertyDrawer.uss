@@ -1,0 +1,9 @@
+.target_subject.unity-box {
+    background-color: rgba(255, 251, 0, 0.2);
+}
+
+.testing.unity-foldout {
+    background-color: rgba(28, 76, 112, 0.7);
+    padding: 8px;
+    border-radius: 8px;
+}

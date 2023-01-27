@@ -14,8 +14,8 @@ namespace Zero.Generator {
 		[SerializeField] internal uint startIndex = 1;
 		[SerializeField] internal uint quantity = 10;
 		[SerializeField] internal bool overwriteExist = false;
-		[SerializeField] internal string nameFormat = "%d";
-		[SerializeField] internal bool hashName = false;
+		[SerializeField] internal string filenameFormat = "%d";
+		[SerializeField] internal bool hashFilename = false;
 
 		[SerializeField] private GeneratorRule rule;
 
@@ -36,7 +36,7 @@ namespace Zero.Generator {
 			rootObject != null &&
 			!string.IsNullOrEmpty(outputDirectoryUri) &&
 			!string.IsNullOrEmpty(vrmOutputDirectoryName) &&
-			!string.IsNullOrEmpty(nameFormat);
+			!string.IsNullOrEmpty(filenameFormat);
 
 		private IEnumerable<int> Indices =>
 			Enumerable.Range((int)startIndex, (int)quantity);
