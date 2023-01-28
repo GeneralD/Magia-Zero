@@ -1,24 +1,23 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using UnityEngine;
 using Zero.Extensions;
 using Zero.Generator.Entity;
 
 namespace Zero.Generator.Metadata {
-	public readonly struct MetadataFactory {
+	public partial class MetadataFactory {
 		private readonly MetadataRule _rule;
 
 		public MetadataFactory(MetadataRule rule) => _rule = rule;
 
 		public string Json(GameObject instance, int index) {
 			var attributes = Attributes(instance).ToArray();
-			var externalURL = Format(_rule.externalUrlFormat, index, attributes);
-			var description = Format(_rule.descriptionFormat, index, attributes);
-			var name = Format(_rule.nameFormat, index, attributes);
-			var backgroundColor = ColorUtility.ToHtmlStringRGB(_rule.backgroundColor);
+			var formatter = new TextFormatter(index, attributes);
+			var externalURL = formatter.Format(_rule.externalUrlFormat);
+			var description = formatter.Format(_rule.descriptionFormat);
+			var name = formatter.Format(_rule.nameFormat);
+			var backgroundColor = ColorUtility.ToHtmlStringRGB(_rule.backgroundColor).ToLower();
 
 			// TODO: fill two URLs
 			var metadata = new Metadata("", "", externalURL, description, name, attributes, backgroundColor);
@@ -31,7 +30,6 @@ namespace Zero.Generator.Metadata {
 				.SelfAndDescendants()
 				.Select(transform => transform.name)
 				.ToList();
-			var labelOrder = _rule.traitOrder;
 			return _rule.traitData
 				.Where(rule => rule.requirement switch {
 					TraitDataRule.Requirement.Any => names.Any(name =>
@@ -42,26 +40,7 @@ namespace Zero.Generator.Metadata {
 				})
 				.GroupBy(rule => rule.label)
 				.Select(group => new Metadata.Attribute(group.Key, group.Last().value))
-				.OrderBy(attr => Array.IndexOf(labelOrder, attr.Label));
-		}
-
-		private string Format(string text, int index, IEnumerable<Metadata.Attribute> attributes) {
-			var integerFormatRegex = new Regex(@"%(0(?<digits>\d*))?d");
-			text = integerFormatRegex
-				.Replace(text, match => {
-					var digits = match.Groups["digits"].Value;
-					return index.ToString($"D{digits}");
-				});
-
-			var attributeRegex = new Regex(@"\$\{(?<attr>.*)\}");
-			text = attributeRegex
-				.Replace(text,
-					match => {
-						var label = match.Groups["attr"].Value;
-						var attr = attributes.FirstOrDefault(attr => attr.Label == label);
-						return attr?.Value ?? "";
-					});
-			return text;
+				.OrderBy(attr => Array.IndexOf(_rule.traitOrder, attr.Label));
 		}
 	}
 }
