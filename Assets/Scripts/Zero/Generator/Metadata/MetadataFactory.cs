@@ -11,17 +11,20 @@ namespace Zero.Generator.Metadata {
 
 		public MetadataFactory(MetadataRule rule) => _rule = rule;
 
-		public string Json(GameObject instance, int index) {
+		public string Json(GameObject instance, int index, string imageURL, string animationURL) {
 			var attributes = Attributes(instance).ToArray();
 			var formatter = new TextFormatter(index, attributes);
-			var externalURL = formatter.Format(_rule.externalUrlFormat);
+			var externalURL = string.IsNullOrEmpty(_rule.externalUrlFormat)
+				? null
+				: formatter.Format(_rule.externalUrlFormat);
 			var description = formatter.Format(_rule.descriptionFormat);
 			var name = formatter.Format(_rule.nameFormat);
 			var backgroundColor = ColorUtility.ToHtmlStringRGB(_rule.backgroundColor).ToLower();
 
-			// TODO: fill two URLs
-			var metadata = new Metadata("", "", externalURL, description, name, attributes, backgroundColor);
-			var json = JsonConvert.SerializeObject(metadata, Formatting.Indented);
+			var metadata = new Metadata(imageURL, animationURL, externalURL, description, name, attributes,
+				backgroundColor);
+			var json = JsonConvert.SerializeObject(metadata, Formatting.Indented,
+				new JsonSerializerSettings() { NullValueHandling = NullValueHandling.Ignore });
 			return json;
 		}
 

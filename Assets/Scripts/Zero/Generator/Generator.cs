@@ -1,11 +1,14 @@
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEngine;
 using Zero.Extensions;
 using Zero.Generator.Combination;
 using Zero.Generator.Entity;
 using Zero.Generator.Metadata;
 using Zero.Generator.Randomization;
+using Zero.Utility;
 
 namespace Zero.Generator {
 	public class Generator : MonoBehaviour {
@@ -48,7 +51,16 @@ namespace Zero.Generator {
 				.ForEach(v => {
 					// TODO: Export as a VRM
 					v.generated.name += $" ({v.index})";
-					var metadataJson = metadataFactory.Json(v.generated, v.index);
+					var imageURL = Path.Combine(
+						rule.metadataRule.baseUri,
+						vrmOutputDirectoryName,
+						Filename(v.index) + ".png");
+					var animationURL = Path.Combine(
+						rule.metadataRule.baseUri,
+						vrmOutputDirectoryName,
+						Filename(v.index) + ".glb");
+					;
+					var metadataJson = metadataFactory.Json(v.generated, v.index, imageURL, animationURL);
 					// TODO: Delete next line
 					Debug.Log(metadataJson);
 				});
@@ -62,6 +74,18 @@ namespace Zero.Generator {
 
 		private IEnumerable<int> Indices =>
 			Enumerable.Range((int)startIndex, (int)quantity);
+
+		private string Filename(int index) {
+			var integerFormatRegex = new Regex(@"%(0(?<digits>\d*))?d");
+			var filename = integerFormatRegex
+				.Replace(filenameFormat, match => {
+					var digits = match.Groups["digits"].Value;
+					return index.ToString($"D{digits}");
+				});
+			if (!hashFilename) return filename;
+			var hash = Keccak256.ComputeHash(filename);
+			return hash.Select(b => b.ToString("x2")).Aggregate("", string.Concat);
+		}
 
 		private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
 			// Automatically destroy all generated things as soon as operation is done

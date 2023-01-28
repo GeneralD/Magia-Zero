@@ -1,4 +1,5 @@
 using System;
+using JetBrains.Annotations;
 using UnityEngine;
 
 namespace Zero.Generator.Entity {
@@ -7,6 +8,7 @@ namespace Zero.Generator.Entity {
 		public string baseUri;
 		public string nameFormat;
 		public string descriptionFormat;
+		[CanBeNull]
 		public string externalUrlFormat;
 		public Color32 backgroundColor;
 		public TraitDataRule[] traitData;
