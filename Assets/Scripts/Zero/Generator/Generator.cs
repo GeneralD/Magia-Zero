@@ -19,9 +19,6 @@ namespace Zero.Generator {
 		internal string outputDirectoryUri = "~Downloads/Zero";
 
 		[SerializeField]
-		internal string vrmOutputDirectoryName = "VRMs";
-
-		[SerializeField]
 		internal uint startIndex = 1;
 
 		[SerializeField]
@@ -39,6 +36,9 @@ namespace Zero.Generator {
 		[SerializeField]
 		private GeneratorRule rule;
 
+		private readonly string imageOutputDirectoryName = "images";
+		private readonly string vrmOutputDirectoryName = "models";
+
 		public Generator() { }
 
 		public void Generate() {
@@ -51,14 +51,18 @@ namespace Zero.Generator {
 				.ForEach(v => {
 					// TODO: Export as a VRM
 					v.generated.name += $" ({v.index})";
+
+					var filename = Filename(v.index);
+
 					var imageURL = Path.Combine(
 						rule.metadataRule.baseUri,
-						vrmOutputDirectoryName,
-						Filename(v.index) + ".png");
+						imageOutputDirectoryName,
+						filename + ".png");
+
 					var animationURL = Path.Combine(
 						rule.metadataRule.baseUri,
 						vrmOutputDirectoryName,
-						Filename(v.index) + ".glb");
+						filename + ".glb");
 					;
 					var metadataJson = metadataFactory.Json(v.generated, v.index, imageURL, animationURL);
 					// TODO: Delete next line
@@ -82,9 +86,12 @@ namespace Zero.Generator {
 					var digits = match.Groups["digits"].Value;
 					return index.ToString($"D{digits}");
 				});
-			if (!hashFilename) return filename;
-			var hash = Keccak256.ComputeHash(filename);
-			return hash.Select(b => b.ToString("x2")).Aggregate("", string.Concat);
+			return !hashFilename
+				? filename
+				: Keccak256
+					.ComputeHash(filename)
+					.Select(b => b.ToString("x2"))
+					.Aggregate("", string.Concat);
 		}
 
 		private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
