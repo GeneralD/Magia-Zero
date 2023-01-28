@@ -11,6 +11,7 @@
         <engine:TextField label="Description Format" binding-path="descriptionFormat"/>
         <engine:TextField label="External URL Format" binding-path="externalUrlFormat"/>
         <editor:ColorField label="Background Color" binding-path="backgroundColor" show-alpha="false"/>
+        <editor:PropertyField label="Label Order" binding-path="traitOrder"/>
         <editor:PropertyField label="Traits" binding-path="traitData"/>
     </engine:Box>
 </engine:UXML>
