@@ -1,0 +1,3 @@
+.trait.unity-box {
+    background-color: rgba(12, 12, 255, 0.25);
+}

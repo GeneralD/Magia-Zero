@@ -6,11 +6,12 @@
     <engine:Style src="Common.uss"/>
     <engine:Style src="TargetSubjectPropertyDrawer.uss"/>
     <engine:Box class="target_subject">
-        <engine:TextField label="Name" binding-path="name"/>
-        <engine:Toggle label="Use Regex" binding-path="useRegex"/>
-        <engine:Toggle label="Invert Match" binding-path="invertMatch"/>
-        <engine:Foldout class="testing" text="Testing" value="false">
-            <engine:TextField label="Test Text" name="test_text_field"/>
+        <engine:Label class="box_title" text="Target Subject"/>
+        <engine:TextField label="Name" binding-path="name" tooltip="Specify the subject"/>
+        <engine:Toggle label="Use Regex" binding-path="useRegex" tooltip="Enable regex"/>
+        <engine:Toggle label="Invert Match" binding-path="invertMatch" tooltip="Reverse the result of a match"/>
+        <engine:Foldout class="testing" text="Testing" value="false" tooltip="Toggle visibility of testing UI">
+            <engine:TextField label="Test Text" name="test_text_field" tooltip="Text to test for regex"/>
             <engine:Button text="Try" class="button" name="test_regex_button"/>
         </engine:Foldout>
     </engine:Box>

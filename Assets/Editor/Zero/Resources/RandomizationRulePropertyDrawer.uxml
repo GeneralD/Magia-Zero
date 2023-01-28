@@ -4,11 +4,10 @@
         xmlns:engine="UnityEngine.UIElements"
         xmlns:editor="UnityEditor.UIElements">
     <engine:Style src="Common.uss"/>
-    <engine:Style src="ProbabilityRulePropertyDrawer.uss"/>
-    <engine:Box class="probability">
-        <engine:Label class="box_title" text="Probability"/>
+    <engine:Style src="RandomizationRulePropertyDrawer.uss"/>
+    <engine:Box class="randomization">
+        <engine:Label class="box_title" text="Rule"/>
         <editor:PropertyField label="Target" binding-path="target"/>
-        <editor:DoubleField label="Weight" binding-path="weight"/>
-        <engine:Toggle label="Divide by matches" binding-path="divideByMatches"/>
+        <editor:PropertyField label="Probability" binding-path="probabilityRules"/>
     </engine:Box>
 </engine:UXML>
