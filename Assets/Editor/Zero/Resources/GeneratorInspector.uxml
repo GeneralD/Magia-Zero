@@ -26,9 +26,9 @@
             <engine:Toggle label="Overwrite Exist" binding-path="overwriteExist"/>
         </engine:Box>
         <engine:Box class="settings">
-            <engine:Label text="Naming" class="box_title"/>
-            <engine:TextField label="Name Format" binding-path="filenameFormat"/>
-            <engine:Toggle label="Encrypt Name" binding-path="hashFilename"/>
+            <engine:Label text="Naming Files" class="box_title"/>
+            <engine:TextField label="Filename Format" binding-path="filenameFormat"/>
+            <engine:Toggle label="Encrypt Filename" binding-path="hashFilename"/>
         </engine:Box>
 
         <editor:PropertyField binding-path="rule"/>

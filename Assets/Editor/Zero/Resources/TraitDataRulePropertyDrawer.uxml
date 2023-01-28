@@ -9,6 +9,7 @@
         <engine:Label class="box_title" text="Rule"/>
         <engine:TextField label="Label" binding-path="label"/>
         <engine:TextField label="Value" binding-path="value"/>
+        <editor:EnumField label="Requirement" binding-path="requirement"/>
         <editor:PropertyField label="Conditions" binding-path="conditions"/>
     </engine:Box>
 </engine:UXML>
