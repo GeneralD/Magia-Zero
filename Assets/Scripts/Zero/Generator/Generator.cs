@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -16,7 +17,7 @@ namespace Zero.Generator {
 		internal GameObject rootObject;
 
 		[SerializeField]
-		internal string outputDirectoryUri = "~Downloads/Zero";
+		internal string outputDirectoryUri = "~/Downloads/Zero";
 
 		[SerializeField]
 		internal uint startIndex = 1;
@@ -36,13 +37,18 @@ namespace Zero.Generator {
 		[SerializeField]
 		private GeneratorRule rule;
 
-		private readonly string imageOutputDirectoryName = "images";
-		private readonly string vrmOutputDirectoryName = "models";
+		private const string ImageOutputDirectoryName = "images";
+		private const string ModelOutputDirectoryName = "models";
+
+		private readonly Regex _integerFormatRegex = new(@"%(0(?<digits>\d*))?d");
+
 
 		public Generator() { }
 
 		public void Generate() {
 			if (!IsValid) return;
+
+			CreateDirectories();
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
 
@@ -56,32 +62,36 @@ namespace Zero.Generator {
 
 					var imageURL = Path.Combine(
 						rule.metadataRule.baseUri,
-						imageOutputDirectoryName,
+						ImageOutputDirectoryName,
 						filename + ".png");
 
 					var animationURL = Path.Combine(
 						rule.metadataRule.baseUri,
-						vrmOutputDirectoryName,
+						ModelOutputDirectoryName,
 						filename + ".glb");
-					;
+
 					var metadataJson = metadataFactory.Json(v.generated, v.index, imageURL, animationURL);
-					// TODO: Delete next line
-					Debug.Log(metadataJson);
+					File.WriteAllText(MetadataOutputPath(v.index), metadataJson);
 				});
 		}
 
-		private bool IsValid =>
-			rootObject != null &&
-			!string.IsNullOrEmpty(outputDirectoryUri) &&
-			!string.IsNullOrEmpty(vrmOutputDirectoryName) &&
-			!string.IsNullOrEmpty(filenameFormat);
+		private bool IsValid {
+			get {
+				return rootObject != null &&
+				       !string.IsNullOrEmpty(outputDirectoryUri) &&
+				       _integerFormatRegex.IsMatch(filenameFormat);
+			}
+		}
 
-		private IEnumerable<int> Indices =>
-			Enumerable.Range((int)startIndex, (int)quantity);
+		private IEnumerable<int> Indices {
+			get {
+				var range = Enumerable.Range((int)startIndex, (int)quantity);
+				return overwriteExist ? range : range.Where(i => !File.Exists(MetadataOutputPath(i)));
+			}
+		}
 
 		private string Filename(int index) {
-			var integerFormatRegex = new Regex(@"%(0(?<digits>\d*))?d");
-			var filename = integerFormatRegex
+			var filename = _integerFormatRegex
 				.Replace(filenameFormat, match => {
 					var digits = match.Groups["digits"].Value;
 					return index.ToString($"D{digits}");
@@ -92,6 +102,17 @@ namespace Zero.Generator {
 					.ComputeHash(filename)
 					.Select(b => b.ToString("x2"))
 					.Aggregate("", string.Concat);
+		}
+
+		private string MetadataOutputPath(int index) => Path.Combine(outputDirectoryUri, Filename(index) + ".json");
+
+		private void CreateDirectories() {
+			outputDirectoryUri = new Regex(@"^~")
+				.Replace(outputDirectoryUri, match => Environment.GetFolderPath(Environment.SpecialFolder.Personal));
+
+			Directory.CreateDirectory(outputDirectoryUri);
+			Directory.CreateDirectory(Path.Combine(outputDirectoryUri, ImageOutputDirectoryName));
+			Directory.CreateDirectory(Path.Combine(outputDirectoryUri, ModelOutputDirectoryName));
 		}
 
 		private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
