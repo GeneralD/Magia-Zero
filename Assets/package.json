@@ -1,4 +1,5 @@
 {
+  "license": "MIT",
   "name": "com.zero.magia",
   "version": "0.0.1",
   "displayName": "Magia ZERO",
@@ -14,12 +15,17 @@
     "generator"
   ],
   "author": {
-    "name": "Yumenosuke"
+    "name": "Yumenosuke",
+    "url": "https://github.com/GeneralD"
   },
   "dependencies": {
     "com.vrmc.gltf": "0.108.0",
     "com.vrmc.univrm": "0.108.0",
     "com.vrmc.vrm": "0.108.0",
     "com.vrmc.vrmshaders": "0.108.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GeneralD/Magia-Zero"
   }
 }
