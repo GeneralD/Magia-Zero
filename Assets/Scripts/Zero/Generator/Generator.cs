@@ -7,6 +7,7 @@ using Zero.Generator.Combination;
 using Zero.Generator.Entity;
 using Zero.Generator.Metadata;
 using Zero.Generator.Randomization;
+using Zero.Utility;
 
 namespace Zero.Generator {
 	public class Generator : MonoBehaviour {
@@ -37,10 +38,11 @@ namespace Zero.Generator {
 		public Generator() { }
 
 		public void Generate() {
-			var locationManager = LocationManager();
+			if (rootObject == null) return;
 
-			if (!locationManager.IsValid && rootObject != null) return;
-			locationManager.InitializeDirectories();
+			var locationManager = new LocationManager(
+				filenameFormat, hashFilename, outputDirectoryUri, rule.metadataRule.baseUri);
+			if (!locationManager.IsValid) return;
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
 			var modelExporter = new ModelExporter();
@@ -49,16 +51,13 @@ namespace Zero.Generator {
 				.Zip(Indices(locationManager), (generated, index) => (generated, index))
 				.ForEach(v => {
 					v.generated.name += $" ({v.index})";
-					modelExporter.Export(v.generated, locationManager.ModelOutputPath(v.index));
+					modelExporter.Export(v.generated, locationManager.ModelFilePath(v.index));
 
-					var metadataJson = metadataFactory.Json(v.generated, v.index, locationManager.ImageURL(v.index),
-						locationManager.ModelURL(v.index));
-					File.WriteAllText(locationManager.MetadataOutputPath(v.index), metadataJson);
+					var metadataJson = metadataFactory.Json(v.generated, v.index,
+						locationManager.ImageURL(v.index), locationManager.ModelURL(v.index));
+					FileUtility.CreateTextFile(locationManager.MetadataOutputPath(v.index), metadataJson);
 				});
 		}
-
-		private LocationManager LocationManager() =>
-			new(hashFilename, filenameFormat, outputDirectoryUri, rule.metadataRule.baseUri);
 
 		private IEnumerable<int> Indices(LocationManager locationManager) {
 			var range = Enumerable.Range((int)startIndex, (int)quantity);
@@ -82,5 +81,3 @@ namespace Zero.Generator {
 		}
 	}
 }
-
-namespace Zero { }
