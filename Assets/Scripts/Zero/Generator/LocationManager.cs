@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -20,8 +21,11 @@ namespace Zero.Generator {
 		public LocationManager(string filenameFormat, bool hashFilename, string outputDirectory, string baseUri) {
 			_filenameFormat = filenameFormat;
 			_hashFilename = hashFilename;
-			_outputDirectory = outputDirectory;
 			_baseUri = baseUri;
+
+			var regex = new Regex(@"^~");
+			var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
+			_outputDirectory = regex.Replace(outputDirectory, _ => homeDir);
 		}
 
 		public bool IsValid =>
@@ -33,13 +37,13 @@ namespace Zero.Generator {
 			Path.Combine(_outputDirectory, Filename(index) + ".json");
 
 		public string ModelFilePath(int index) =>
-			Path.Combine(_outputDirectory, ModelOutputDirectoryName, Filename(index) + ".glb");
+			Path.Combine(_outputDirectory, ModelOutputDirectoryName, Filename(index) + ".vrm");
 
 		public string ImageFilePath(int index) =>
 			Path.Combine(_outputDirectory, ImageOutputDirectoryName, Filename(index) + ".png");
 
 		public string ModelURL(int index) =>
-			Path.Combine(_baseUri, ModelOutputDirectoryName, Filename(index) + ".glb");
+			Path.Combine(_baseUri, ModelOutputDirectoryName, Filename(index) + ".vrm");
 
 		public string ImageURL(int index) =>
 			Path.Combine(_baseUri, ImageOutputDirectoryName, Filename(index) + ".png");

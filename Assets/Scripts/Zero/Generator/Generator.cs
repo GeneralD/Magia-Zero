@@ -45,13 +45,15 @@ namespace Zero.Generator {
 			if (!locationManager.IsValid) return;
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
-			var modelExporter = new ModelExporter();
+			var modelDatalizer = new ModelDatalizer(ModelDatalizer.Mode.Normalize);
 
 			GeneratedInstances(rootObject)
 				.Zip(Indices(locationManager), (generated, index) => (generated, index))
 				.ForEach(v => {
 					v.generated.name += $" ({v.index})";
-					modelExporter.Export(v.generated, locationManager.ModelFilePath(v.index));
+
+					var modelData = modelDatalizer.Datalize(v.generated);
+					FileUtility.CreateDataFile(locationManager.ModelFilePath(v.index), modelData);
 
 					var metadataJson = metadataFactory.Json(v.generated, v.index,
 						locationManager.ImageURL(v.index), locationManager.ModelURL(v.index));

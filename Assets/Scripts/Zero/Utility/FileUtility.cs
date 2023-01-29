@@ -8,5 +8,10 @@ namespace Zero.Utility {
 			using var writer = file.CreateText();
 			writer.Write(text);
 		}
+
+		public static void CreateDataFile(string path, byte[] data, bool createDirectory = true) {
+			if (createDirectory) new FileInfo(path).Directory?.Create();
+			File.WriteAllBytes(path, data);
+		}
 	}
 }

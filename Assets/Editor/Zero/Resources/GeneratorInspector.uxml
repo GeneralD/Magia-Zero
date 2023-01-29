@@ -16,9 +16,7 @@
         </engine:Box>
         <engine:Box class="settings">
             <engine:Label text="Output" class="box_title"/>
-            <engine:TextField label="Output Directory"
-                              name="output_directory_textfield"
-                              binding-path="outputDirectoryUri"/>
+            <engine:TextField label="Output Directory" binding-path="outputDirectoryUri"/>
         </engine:Box>
         <engine:Box class="settings">
             <engine:Label text="Indices" class="box_title"/>
