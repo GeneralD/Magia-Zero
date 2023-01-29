@@ -45,7 +45,7 @@ namespace Zero.Generator {
 			if (!locationManager.IsValid) return;
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
-			var modelDatalizer = new ModelDatalizer(ModelDatalizer.Mode.Normalize);
+			var modelDatalizer = new ModelDatalizer(ModelDatalizer.Mode.Normalize, ModelDatalizer.Version.VRM10);
 
 			GeneratedInstances(rootObject)
 				.Zip(Indices(locationManager), (generated, index) => (generated, index))
