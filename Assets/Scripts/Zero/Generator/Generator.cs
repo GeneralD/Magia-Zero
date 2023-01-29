@@ -1,14 +1,12 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using UnityEngine;
 using Zero.Extensions;
 using Zero.Generator.Combination;
 using Zero.Generator.Entity;
 using Zero.Generator.Metadata;
 using Zero.Generator.Randomization;
-using Zero.Utility;
 
 namespace Zero.Generator {
 	public class Generator : MonoBehaviour {
@@ -25,93 +23,51 @@ namespace Zero.Generator {
 		internal uint quantity = 10;
 
 		[SerializeField]
-		internal bool overwriteExist = false;
+		internal bool overwriteExist;
 
 		[SerializeField]
 		internal string filenameFormat = "%d";
 
 		[SerializeField]
-		internal bool hashFilename = false;
+		internal bool hashFilename;
 
 		[SerializeField]
 		private GeneratorRule rule;
 
-		private const string ImageOutputDirectoryName = "images";
-		private const string ModelOutputDirectoryName = "models";
-
-		private readonly Regex _integerFormatRegex = new(@"%(0(?<digits>\d*))?d");
-
-
 		public Generator() { }
 
 		public void Generate() {
-			if (!IsValid) return;
+			var locationManager = LocationManager();
 
-			CreateDirectories();
+			if (!locationManager.IsValid && rootObject != null) return;
+			locationManager.InitializeDirectories();
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
+			var modelExporter = new ModelExporter();
 
 			GeneratedInstances(rootObject)
-				.Zip(Indices, (generated, index) => (generated, index))
+				.Zip(Indices(locationManager), (generated, index) => (generated, index))
 				.ForEach(v => {
-					// TODO: Export as a VRM
 					v.generated.name += $" ({v.index})";
+					modelExporter.Export(v.generated, locationManager.ModelOutputPath(v.index));
 
-					var filename = Filename(v.index);
-
-					var imageURL = Path.Combine(
-						rule.metadataRule.baseUri,
-						ImageOutputDirectoryName,
-						filename + ".png");
-
-					var animationURL = Path.Combine(
-						rule.metadataRule.baseUri,
-						ModelOutputDirectoryName,
-						filename + ".glb");
-
-					var metadataJson = metadataFactory.Json(v.generated, v.index, imageURL, animationURL);
-					File.WriteAllText(MetadataOutputPath(v.index), metadataJson);
+					var metadataJson = metadataFactory.Json(v.generated, v.index, locationManager.ImageURL(v.index),
+						locationManager.ModelURL(v.index));
+					File.WriteAllText(locationManager.MetadataOutputPath(v.index), metadataJson);
 				});
 		}
 
-		private bool IsValid =>
-			rootObject != null &&
-			!string.IsNullOrEmpty(outputDirectoryUri) &&
-			_integerFormatRegex.IsMatch(filenameFormat);
+		private LocationManager LocationManager() =>
+			new(hashFilename, filenameFormat, outputDirectoryUri, rule.metadataRule.baseUri);
 
-		private IEnumerable<int> Indices {
-			get {
-				var range = Enumerable.Range((int)startIndex, (int)quantity);
-				return overwriteExist ? range : range.Where(i => !File.Exists(MetadataOutputPath(i)));
-			}
-		}
-
-		private string Filename(int index) {
-			var filename = _integerFormatRegex
-				.Replace(filenameFormat, match => {
-					var digits = match.Groups["digits"].Value;
-					return index.ToString($"D{digits}");
-				});
-			return !hashFilename
-				? filename
-				: Keccak256
-					.ComputeHash(filename)
-					.Select(b => b.ToString("x2"))
-					.Aggregate("", string.Concat);
-		}
-
-		private string MetadataOutputPath(int index) => Path.Combine(outputDirectoryUri, Filename(index) + ".json");
-
-		private void CreateDirectories() {
-			Directory.CreateDirectory(outputDirectoryUri);
-			Directory.CreateDirectory(Path.Combine(outputDirectoryUri, ImageOutputDirectoryName));
-			Directory.CreateDirectory(Path.Combine(outputDirectoryUri, ModelOutputDirectoryName));
+		private IEnumerable<int> Indices(LocationManager locationManager) {
+			var range = Enumerable.Range((int)startIndex, (int)quantity);
+			return overwriteExist ? range : range.Where(i => !File.Exists(locationManager.MetadataOutputPath(i)));
 		}
 
 		private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
 			// Automatically destroy all generated things as soon as operation is done
-			// TODO: add `using` before next line
-			var temporary = new DisposableContainerWrapper(new GameObject("Container"));
+			using var temporary = new DisposableContainerWrapper(new GameObject("Container"));
 
 			var randomizationApplier = new RandomizationApplier(rule.randomizationRules);
 			var combinationChecker = new CombinationChecker(rule.combinationRules);
@@ -126,3 +82,5 @@ namespace Zero.Generator {
 		}
 	}
 }
+
+namespace Zero { }
