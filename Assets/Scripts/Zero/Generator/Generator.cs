@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -75,13 +74,10 @@ namespace Zero.Generator {
 				});
 		}
 
-		private bool IsValid {
-			get {
-				return rootObject != null &&
-				       !string.IsNullOrEmpty(outputDirectoryUri) &&
-				       _integerFormatRegex.IsMatch(filenameFormat);
-			}
-		}
+		private bool IsValid =>
+			rootObject != null &&
+			!string.IsNullOrEmpty(outputDirectoryUri) &&
+			_integerFormatRegex.IsMatch(filenameFormat);
 
 		private IEnumerable<int> Indices {
 			get {
@@ -107,9 +103,6 @@ namespace Zero.Generator {
 		private string MetadataOutputPath(int index) => Path.Combine(outputDirectoryUri, Filename(index) + ".json");
 
 		private void CreateDirectories() {
-			outputDirectoryUri = new Regex(@"^~")
-				.Replace(outputDirectoryUri, match => Environment.GetFolderPath(Environment.SpecialFolder.Personal));
-
 			Directory.CreateDirectory(outputDirectoryUri);
 			Directory.CreateDirectory(Path.Combine(outputDirectoryUri, ImageOutputDirectoryName));
 			Directory.CreateDirectory(Path.Combine(outputDirectoryUri, ModelOutputDirectoryName));
