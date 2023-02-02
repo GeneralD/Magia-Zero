@@ -30,6 +30,7 @@
             <engine:Toggle label="Encrypt Filename" binding-path="hashFilename"/>
         </engine:Box>
 
+        <editor:PropertyField binding-path="vrmMeta"/>
         <editor:PropertyField binding-path="rule"/>
     </engine:Box>
 

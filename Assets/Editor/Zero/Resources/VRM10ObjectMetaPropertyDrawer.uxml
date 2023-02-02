@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:engine="UnityEngine.UIElements"
+        xmlns:editor="UnityEditor.UIElements">
+    <engine:Style src="Common.uss"/>
+    <engine:Style src="VRM10ObjectMetaPropertyDrawer.uss"/>
+    <engine:Box class="vrm_meta">
+        <engine:Label class="box_title" text="VRM 1.0 Meta"/>
+        <editor:PropertyField label="Name" binding-path="Name"/>
+        <editor:PropertyField label="Version" binding-path="Version"/>
+        <editor:PropertyField label="Authors" binding-path="Authors"/>
+        <editor:PropertyField label="Copyright Information" binding-path="CopyrightInformation"/>
+        <editor:PropertyField label="References" binding-path="ContactInformation"/>
+        <editor:PropertyField label="Copyright Information" binding-path="References"/>
+        <editor:PropertyField label="3rd Party Licenses" binding-path="ThirdPartyLicenses"/>
+        <editor:PropertyField label="Thumbnail" binding-path="Thumbnail"/>
+        <editor:PropertyField label="Avatar Permission" binding-path="AvatarPermission"/>
+        <engine:Box>
+            <engine:Label class="box_title" text="Usage"/>
+            <editor:PropertyField label="Violent" binding-path="ViolentUsage"/>
+            <editor:PropertyField label="Sexual" binding-path="SexualUsage"/>
+            <editor:PropertyField label="Commercial" binding-path="CommercialUsage"/>
+            <editor:PropertyField label="Political Or Religious" binding-path="PoliticalOrReligiousUsage"/>
+            <editor:PropertyField label="Antisocial Or Hate" binding-path="AntisocialOrHateUsage"/>
+        </engine:Box>
+        <editor:PropertyField label="Credit Notation" binding-path="CreditNotation"/>
+        <editor:PropertyField label="Redistribution" binding-path="Redistribution"/>
+        <editor:PropertyField label="Modification" binding-path="Modification"/>
+        <editor:PropertyField label="Other License Url" binding-path="OtherLicenseUrl"/>
+
+    </engine:Box>
+</engine:UXML>

@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
+using UniVRM10;
 using Zero.Extensions;
 using Zero.Generator.Combination;
 using Zero.Generator.Entity;
@@ -33,6 +34,9 @@ namespace Zero.Generator {
 		internal bool hashFilename;
 
 		[SerializeField]
+		private VRM10ObjectMeta vrmMeta;
+
+		[SerializeField]
 		private GeneratorRule rule;
 
 		public Generator() { }
@@ -45,15 +49,22 @@ namespace Zero.Generator {
 			if (!locationManager.IsValid) return;
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
-			var modelDatalizer = new ModelDatalizer(ModelDatalizer.Mode.Normalize, ModelDatalizer.Version.VRM10);
+			var modelDatalizer = new ModelDatalizer(vrmMeta);
 
-			GeneratedInstances(rootObject)
+			// Automatically destroy all generated things as soon as operation is done
+			using var temporary = new DisposableContainerWrapper(new GameObject("Container"));
+			using var photoBooth = new PhotoBooth(temporary.Container.transform, PhotoBooth.Position.Front);
+
+			GeneratedInstances(rootObject, temporary.Container.transform)
 				.Zip(Indices(locationManager), (generated, index) => (generated, index))
 				.ForEach(v => {
 					v.generated.name += $" ({v.index})";
 
 					var modelData = modelDatalizer.Datalize(v.generated);
 					FileUtility.CreateDataFile(locationManager.ModelFilePath(v.index), modelData);
+
+					var imageData = photoBooth.Shoot(PhotoBooth.Format.JPG);
+					FileUtility.CreateDataFile(locationManager.ImageFilePath(v.index), imageData);
 
 					var metadataJson = metadataFactory.Json(v.generated, v.index,
 						locationManager.ImageURL(v.index), locationManager.ModelURL(v.index));
@@ -66,15 +77,13 @@ namespace Zero.Generator {
 			return overwriteExist ? range : range.Where(i => !File.Exists(locationManager.MetadataOutputPath(i)));
 		}
 
-		private IEnumerable<GameObject> GeneratedInstances(GameObject sample) {
-			// Automatically destroy all generated things as soon as operation is done
-			using var temporary = new DisposableContainerWrapper(new GameObject("Container"));
-
+		private IEnumerable<GameObject> GeneratedInstances(GameObject sample, Transform parent) {
 			var randomizationApplier = new RandomizationApplier(rule.randomizationRules);
 			var combinationChecker = new CombinationChecker(rule.combinationRules);
 
 			while (true) {
-				var instance = Instantiate(sample, temporary.Container.transform);
+				var instance = Instantiate(sample, parent);
+				instance.transform.position = Vector3.zero;
 				randomizationApplier.ApplyRandomization(instance);
 				if (combinationChecker.IsValid(instance)) yield return instance;
 				else DestroyImmediate(instance);
