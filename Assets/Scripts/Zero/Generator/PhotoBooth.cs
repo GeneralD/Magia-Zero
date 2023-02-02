@@ -59,7 +59,7 @@ namespace Zero.Generator {
 
 		public void Dispose() => Object.DestroyImmediate(_camera.gameObject);
 
-		public byte[] Shoot(ImageFormat format, int size = 1280, int depth = 24) {
+		public Texture2D Shoot(int size = 1280, int depth = 24) {
 			var texture = new RenderTexture(size, size, depth);
 			var originalTexture = _camera.targetTexture;
 			_camera.targetTexture = texture;
@@ -70,11 +70,7 @@ namespace Zero.Generator {
 			var capture = new Texture2D(texture.width, texture.height, TextureFormat.ARGB32, false);
 			capture.ReadPixels(new Rect(Vector2.zero, new Vector2(capture.width, capture.height)), 0, 0);
 			capture.Apply();
-			return format switch {
-				ImageFormat.PNG => capture.EncodeToPNG(),
-				ImageFormat.JPG => capture.EncodeToJPG(),
-				_ => throw new ArgumentOutOfRangeException(nameof(format), format, null)
-			};
+			return capture;
 		}
 	}
 }

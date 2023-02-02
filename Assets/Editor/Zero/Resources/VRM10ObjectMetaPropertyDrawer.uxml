@@ -14,7 +14,7 @@
         <editor:PropertyField label="References" binding-path="ContactInformation"/>
         <editor:PropertyField label="Copyright Information" binding-path="References"/>
         <editor:PropertyField label="3rd Party Licenses" binding-path="ThirdPartyLicenses"/>
-        <editor:PropertyField label="Thumbnail" binding-path="Thumbnail"/>
+        <editor:PropertyField class="hidden" label="Thumbnail" binding-path="Thumbnail"/>
         <editor:PropertyField label="Avatar Permission" binding-path="AvatarPermission"/>
         <engine:Box>
             <engine:Label class="box_title" text="Usage"/>

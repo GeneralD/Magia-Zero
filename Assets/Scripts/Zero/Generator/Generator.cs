@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,9 @@ namespace Zero.Generator {
 
 		[SerializeField]
 		internal ImageFormat imageFormat = ImageFormat.JPG;
+
+		[SerializeField]
+		internal int imageSize = 1280;
 
 		[SerializeField]
 		internal uint startIndex = 1;
@@ -61,11 +65,16 @@ namespace Zero.Generator {
 			foreach (var (instance, index) in instances) {
 				instance.name += $" ({index})";
 
-				var modelData = modelDatalizer.Datalize(instance);
-				FileUtility.CreateDataFile(locationManager.ModelFilePath(index), modelData);
-
-				var imageData = photoBooth.Shoot(imageFormat);
+				var imageTexture = photoBooth.Shoot(imageSize);
+				var imageData = imageFormat switch {
+					ImageFormat.PNG => imageTexture.EncodeToPNG(),
+					ImageFormat.JPG => imageTexture.EncodeToJPG(),
+					_ => throw new ArgumentOutOfRangeException()
+				};
 				FileUtility.CreateDataFile(locationManager.ImageFilePath(index), imageData);
+
+				var modelData = modelDatalizer.Datalize(instance, imageTexture);
+				FileUtility.CreateDataFile(locationManager.ModelFilePath(index), modelData);
 
 				var metadataJson = metadataFactory.Json(instance, index,
 					locationManager.ImageURL(index), locationManager.ModelURL(index));
@@ -91,10 +100,5 @@ namespace Zero.Generator {
 			}
 			// ReSharper disable once IteratorNeverReturns
 		}
-	}
-
-	public enum ImageFormat {
-		PNG,
-		JPG,
 	}
 }

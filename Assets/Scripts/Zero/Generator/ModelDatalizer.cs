@@ -9,6 +9,12 @@ namespace Zero.Generator {
 			_meta = meta;
 		}
 
-		public byte[] Datalize(GameObject instance) => Vrm10Exporter.Export(instance, null, _meta);
+		public byte[] Datalize(GameObject instance, Texture2D thumbnail = null) {
+			var copy = new VRM10ObjectMeta();
+			_meta.CopyTo(copy);
+			// override thumbnail
+			if (thumbnail != null) copy.Thumbnail = thumbnail;
+			return Vrm10Exporter.Export(instance, null, copy);
+		}
 	}
 }
