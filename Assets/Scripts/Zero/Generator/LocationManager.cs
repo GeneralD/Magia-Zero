@@ -16,12 +16,19 @@ namespace Zero.Generator {
 		private readonly bool _hashFilename;
 		private readonly string _outputDirectory;
 		private readonly string _baseUri;
+		private readonly ImageFormat _imageFormat;
 		private readonly IDictionary<int, string> _filenameCache = new Dictionary<int, string>();
 
-		public LocationManager(string filenameFormat, bool hashFilename, string outputDirectory, string baseUri) {
+		public LocationManager(
+			string filenameFormat,
+			bool hashFilename,
+			string outputDirectory,
+			string baseUri,
+			ImageFormat imageFormat) {
 			_filenameFormat = filenameFormat;
 			_hashFilename = hashFilename;
 			_baseUri = baseUri;
+			_imageFormat = imageFormat;
 
 			var regex = new Regex(@"^~");
 			var homeDir = Environment.GetFolderPath(Environment.SpecialFolder.Personal);
@@ -34,19 +41,21 @@ namespace Zero.Generator {
 			_webUrlFormatRegex.IsMatch(_baseUri);
 
 		public string MetadataOutputPath(int index) =>
-			Path.Combine(_outputDirectory, Filename(index) + ".json");
+			Path.Combine(_outputDirectory, Filename(index, MetadataExtension));
 
 		public string ModelFilePath(int index) =>
-			Path.Combine(_outputDirectory, ModelOutputDirectoryName, Filename(index) + ".vrm");
+			Path.Combine(_outputDirectory, ModelOutputDirectoryName, Filename(index, ModelExtension));
 
 		public string ImageFilePath(int index) =>
-			Path.Combine(_outputDirectory, ImageOutputDirectoryName, Filename(index) + ".png");
+			Path.Combine(_outputDirectory, ImageOutputDirectoryName, Filename(index, ImageExtension));
 
 		public string ModelURL(int index) =>
-			Path.Combine(_baseUri, ModelOutputDirectoryName, Filename(index) + ".vrm");
+			Path.Combine(_baseUri, ModelOutputDirectoryName, Filename(index, ModelExtension));
 
 		public string ImageURL(int index) =>
-			Path.Combine(_baseUri, ImageOutputDirectoryName, Filename(index) + ".png");
+			Path.Combine(_baseUri, ImageOutputDirectoryName, Filename(index, ImageExtension));
+
+		private string Filename(int index, string extension) => $"{Filename(index)}.{extension}";
 
 		private string Filename(int index) {
 			if (_filenameCache.TryGetValue(index, out var value)) return value;
@@ -62,5 +71,15 @@ namespace Zero.Generator {
 					.Aggregate("", string.Concat)
 				: filename;
 		}
+
+		private string ImageExtension =>
+			_imageFormat switch {
+				ImageFormat.PNG => "png",
+				ImageFormat.JPG => "jpg",
+				_ => throw new ArgumentOutOfRangeException()
+			};
+
+		private static string ModelExtension => "vrm";
+		private static string MetadataExtension => "json";
 	}
 }

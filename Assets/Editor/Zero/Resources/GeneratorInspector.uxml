@@ -17,6 +17,7 @@
         <engine:Box class="settings">
             <engine:Label text="Output" class="box_title"/>
             <engine:TextField label="Output Directory" binding-path="outputDirectoryUri"/>
+            <editor:EnumField label="Image Format" binding-path="imageFormat"/>
         </engine:Box>
         <engine:Box class="settings">
             <engine:Label text="Indices" class="box_title"/>

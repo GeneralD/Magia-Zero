@@ -18,6 +18,9 @@ namespace Zero.Generator {
 		internal string outputDirectoryUri = "~/Downloads/Zero";
 
 		[SerializeField]
+		internal ImageFormat imageFormat = ImageFormat.JPG;
+
+		[SerializeField]
 		internal uint startIndex = 1;
 
 		[SerializeField]
@@ -42,7 +45,7 @@ namespace Zero.Generator {
 			if (rootObject == null) return;
 
 			var locationManager = new LocationManager(
-				filenameFormat, hashFilename, outputDirectoryUri, rule.metadataRule.baseUri);
+				filenameFormat, hashFilename, outputDirectoryUri, rule.metadataRule.baseUri, imageFormat);
 			if (!locationManager.IsValid) return;
 
 			var metadataFactory = new MetadataFactory(rule.metadataRule);
@@ -61,7 +64,7 @@ namespace Zero.Generator {
 				var modelData = modelDatalizer.Datalize(instance);
 				FileUtility.CreateDataFile(locationManager.ModelFilePath(index), modelData);
 
-				var imageData = photoBooth.Shoot(PhotoBooth.Format.JPG);
+				var imageData = photoBooth.Shoot(imageFormat);
 				FileUtility.CreateDataFile(locationManager.ImageFilePath(index), imageData);
 
 				var metadataJson = metadataFactory.Json(instance, index,
@@ -88,5 +91,10 @@ namespace Zero.Generator {
 			}
 			// ReSharper disable once IteratorNeverReturns
 		}
+	}
+
+	public enum ImageFormat {
+		PNG,
+		JPG,
 	}
 }
