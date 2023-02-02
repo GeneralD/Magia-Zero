@@ -33,13 +33,14 @@ namespace Zero.Generator {
 				Position.Face => new Vector3(0f, 1.3f, 1f),
 				_ => throw new ArgumentOutOfRangeException(nameof(position), position, null)
 			};
+			var n = Mathf.Pow(.5f, .5f);
 			obj.transform.rotation = position switch {
 				Position.Front => new Quaternion(0f, 1f, 0f, 0f),
 				Position.Back => new Quaternion(0f, 0f, 0f, 1f),
-				Position.Top => new Quaternion(0.7071068f, 0f, 0f, 0.7071068f),
-				Position.Bottom => new Quaternion(-0.7071068f, 0f, 0f, 0.7071068f),
-				Position.Left => new Quaternion(0f, 0.7071068f, 0f, 0.7071068f),
-				Position.Right => new Quaternion(0f, -0.7071068f, 0f, 0.7071068f),
+				Position.Top => new Quaternion(n, 0f, 0f, n),
+				Position.Bottom => new Quaternion(-n, 0f, 0f, n),
+				Position.Left => new Quaternion(0f, n, 0f, n),
+				Position.Right => new Quaternion(0f, -n, 0f, n),
 				Position.Face => new Quaternion(0f, 1f, 0f, 0f),
 				_ => throw new ArgumentOutOfRangeException(nameof(position), position, null)
 			};

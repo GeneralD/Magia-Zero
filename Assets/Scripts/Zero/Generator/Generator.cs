@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using UnityEngine;
 using UniVRM10;
-using Zero.Extensions;
 using Zero.Generator.Combination;
 using Zero.Generator.Entity;
 using Zero.Generator.Metadata;
@@ -39,8 +38,6 @@ namespace Zero.Generator {
 		[SerializeField]
 		private GeneratorRule rule;
 
-		public Generator() { }
-
 		public void Generate() {
 			if (rootObject == null) return;
 
@@ -55,21 +52,22 @@ namespace Zero.Generator {
 			using var temporary = new DisposableContainerWrapper(new GameObject("Container"));
 			using var photoBooth = new PhotoBooth(temporary.Container.transform, PhotoBooth.Position.Front);
 
-			GeneratedInstances(rootObject, temporary.Container.transform)
-				.Zip(Indices(locationManager), (generated, index) => (generated, index))
-				.ForEach(v => {
-					v.generated.name += $" ({v.index})";
+			var instances = GeneratedInstances(rootObject, temporary.Container.transform)
+				.Zip(Indices(locationManager), (generated, index) => (generated, index));
 
-					var modelData = modelDatalizer.Datalize(v.generated);
-					FileUtility.CreateDataFile(locationManager.ModelFilePath(v.index), modelData);
+			foreach (var (instance, index) in instances) {
+				instance.name += $" ({index})";
 
-					var imageData = photoBooth.Shoot(PhotoBooth.Format.JPG);
-					FileUtility.CreateDataFile(locationManager.ImageFilePath(v.index), imageData);
+				var modelData = modelDatalizer.Datalize(instance);
+				FileUtility.CreateDataFile(locationManager.ModelFilePath(index), modelData);
 
-					var metadataJson = metadataFactory.Json(v.generated, v.index,
-						locationManager.ImageURL(v.index), locationManager.ModelURL(v.index));
-					FileUtility.CreateTextFile(locationManager.MetadataOutputPath(v.index), metadataJson);
-				});
+				var imageData = photoBooth.Shoot(PhotoBooth.Format.JPG);
+				FileUtility.CreateDataFile(locationManager.ImageFilePath(index), imageData);
+
+				var metadataJson = metadataFactory.Json(instance, index,
+					locationManager.ImageURL(index), locationManager.ModelURL(index));
+				FileUtility.CreateTextFile(locationManager.MetadataOutputPath(index), metadataJson);
+			}
 		}
 
 		private IEnumerable<int> Indices(LocationManager locationManager) {
