@@ -1,3 +1,11 @@
-.rules.unity-box {
+.metadata_rule.unity-box {
     background-color: rgba(0, 255, 234, 0.2);
+}
+
+.randomization_rule.unity-box {
+    background-color: rgba(84, 124, 255, 0.25);
+}
+
+.combination_rule.unity-box {
+    background-color: rgba(84, 124, 255, 0.25);
 }

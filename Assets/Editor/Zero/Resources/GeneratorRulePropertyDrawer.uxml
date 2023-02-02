@@ -5,15 +5,15 @@
         xmlns:editor="UnityEditor.UIElements">
     <engine:Style src="Common.uss"/>
     <engine:Style src="GeneratorRulePropertyDrawer.uss"/>
-    <engine:Box class="rules">
-        <engine:Label class="box_title" text="Metadata"/>
+    <engine:Box class="metadata_rule">
+        <engine:Label class="box_title" text="NFT Metadata"/>
         <editor:PropertyField label="Metadata" binding-path="metadataRule"/>
     </engine:Box>
-    <engine:Box class="rules">
+    <engine:Box class="randomization_rule">
         <engine:Label class="box_title" text="Randomization"/>
         <editor:PropertyField label="Randomization" binding-path="randomizationRules"/>
     </engine:Box>
-    <engine:Box class="rules">
+    <engine:Box class="combination_rule">
         <engine:Label class="box_title" text="Combination"/>
         <editor:PropertyField label="Combinations" binding-path="combinationRules"/>
     </engine:Box>
