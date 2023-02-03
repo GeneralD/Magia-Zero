@@ -19,6 +19,16 @@ namespace Zero.Generator {
 		private readonly ImageFormat _imageFormat;
 		private readonly IDictionary<int, string> _filenameCache = new Dictionary<int, string>();
 
+		private const string MetadataExtension = "json";
+		private const string ModelExtension = "vrm";
+
+		private string ImageExtension =>
+			_imageFormat switch {
+				ImageFormat.PNG => "png",
+				ImageFormat.JPG => "jpg",
+				_ => throw new ArgumentOutOfRangeException()
+			};
+
 		public LocationManager(
 			string filenameFormat,
 			bool hashFilename,
@@ -71,15 +81,5 @@ namespace Zero.Generator {
 					.Aggregate("", string.Concat)
 				: filename;
 		}
-
-		private string ImageExtension =>
-			_imageFormat switch {
-				ImageFormat.PNG => "png",
-				ImageFormat.JPG => "jpg",
-				_ => throw new ArgumentOutOfRangeException()
-			};
-
-		private static string ModelExtension => "vrm";
-		private static string MetadataExtension => "json";
 	}
 }

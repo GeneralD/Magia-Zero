@@ -32,7 +32,6 @@ MonoBehaviour:
     m_Scopes:
     - com.openupm
     - com.vrmc.gltf
-    - com.vrmc.univrm
     - com.vrmc.vrm
     - com.vrmc.vrmshaders
     m_IsDefault: 0
