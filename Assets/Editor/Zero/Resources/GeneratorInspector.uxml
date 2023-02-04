@@ -17,11 +17,6 @@
         <engine:Box class="settings">
             <engine:Label text="Output" class="box_title"/>
             <engine:TextField label="Output Directory" binding-path="outputDirectoryUri"/>
-            <engine:Box>
-                <engine:Label text="Image" class="box_title"/>
-                <editor:EnumField label="Format" binding-path="imageFormat"/>
-                <editor:IntegerField label="Size" binding-path="imageSize"/>
-            </engine:Box>
         </engine:Box>
         <engine:Box class="settings">
             <engine:Label text="Indices" class="box_title"/>
@@ -33,6 +28,11 @@
             <engine:Label text="Filenames" class="box_title"/>
             <engine:TextField label="Filename Format" binding-path="filenameFormat"/>
             <engine:Toggle label="Encrypt Filename" binding-path="hashFilename"/>
+        </engine:Box>
+        <engine:Box class="settings">
+            <engine:Label text="Image" class="box_title"/>
+            <editor:EnumField label="Format" binding-path="imageFormat"/>
+            <editor:IntegerField label="Size" binding-path="imageSize"/>
         </engine:Box>
 
         <editor:PropertyField binding-path="vrmMeta"/>
