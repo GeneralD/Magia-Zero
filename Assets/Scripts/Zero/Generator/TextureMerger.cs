@@ -3,41 +3,46 @@ using System.Collections.Generic;
 using System.Linq;
 using UniGLTF.MeshUtility;
 using UnityEngine;
-using Zero.Extensions;
 
 namespace Zero.Generator {
 	public class TextureMerger {
+		private readonly int _atlasSize;
+
+		public TextureMerger(int atlasSize = 1024 * 4) {
+			_atlasSize = atlasSize;
+		}
+
 		public void Apply(GameObject root) {
 			var renderers = root.GetComponentsInChildren<Renderer>();
 			var textures = renderers
-				.SelectMany(renderer => renderer.sharedMaterials)
-				.Select(material => material.mainTexture)
+				.Select(renderer => renderer.sharedMaterial.mainTexture)
 				.Distinct()
 				.ToArray();
 
 			var atlas = MakeAtlas(textures);
 
-			renderers.ForEach((renderer, index) => {
+			foreach (var renderer in renderers) {
 				// protect original mesh
-				var mesh = ReplaceMeshWithCopied(renderer);
-				RemapUVsForAllChannels(mesh, index, renderers.Length);
+				var mesh = renderer.ReplaceMeshWithCopied();
+				var textureIndex = Array.IndexOf(textures, renderer.sharedMaterial.mainTexture);
+				mesh.RemapUVsForAllChannels(textureIndex, textures.Length);
 
 				// protect shared (resource) material
-				var materials = ReplaceMaterialsWithCopied(renderer);
-				materials.ForEach(material => material.mainTexture = atlas);
-			});
+				var material = renderer.ReplaceMaterialsWithCopied();
+				material.mainTexture = atlas;
+			}
 		}
 
-		private static Texture2D MakeAtlas(Texture[] textures, int size = 1024 * 4) {
+		private Texture2D MakeAtlas(IReadOnlyList<Texture> textures) {
 			var row = Mathf.CeilToInt(Mathf.Pow(textures.Count(), .5f));
-			var result = new Texture2D(size, size);
-			var sectionSize = size / row;
+			var result = new Texture2D(_atlasSize, _atlasSize);
+			var sectionSize = _atlasSize / row;
 			using var wrapper = new RenderTextureWrapper(sectionSize, sectionSize);
 
-			for (var index = 0; index < textures.Length; index++) {
+			for (var index = 0; index < textures.Count; index++) {
 				var texture = textures[index];
-				var dstX = index % row * size / row;
-				var dstY = index / row * size / row;
+				var dstX = index % row * _atlasSize / row;
+				var dstY = index / row * _atlasSize / row;
 				wrapper.Blit(texture);
 				result.ReadPixels(new Rect(0, 0, sectionSize, sectionSize), dstX, dstY);
 			}
@@ -45,15 +50,17 @@ namespace Zero.Generator {
 			result.Apply();
 			return result;
 		}
+	}
 
-		private static Material[] ReplaceMaterialsWithCopied(Renderer renderer) =>
-			renderer.sharedMaterials = renderer.sharedMaterials.Select(m => {
-				var material = new Material(m);
-				material.CopyPropertiesFromMaterial(m);
-				return material;
-			}).ToArray();
+	internal static class Extensions {
+		public static Material ReplaceMaterialsWithCopied(this Renderer renderer) {
+			var sharedMaterial = renderer.sharedMaterial;
+			var material = new Material(sharedMaterial);
+			material.CopyPropertiesFromMaterial(sharedMaterial);
+			return renderer.sharedMaterial = material;
+		}
 
-		private static Mesh ReplaceMeshWithCopied(Renderer renderer, bool copyBlendShape = true) =>
+		public static Mesh ReplaceMeshWithCopied(this Renderer renderer, bool copyBlendShape = true) =>
 			renderer switch {
 				SkinnedMeshRenderer r =>
 					r.sharedMesh = r.sharedMesh.Copy(copyBlendShape),
@@ -62,12 +69,13 @@ namespace Zero.Generator {
 				_ => throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null)
 			};
 
-		private static void RemapUVsForAllChannels(Mesh mesh, int rendererIndex, int numberOfRenderer) {
+
+		public static void RemapUVsForAllChannels(this Mesh mesh, int index, int count) {
 			for (var channel = 0; channel < 4; channel++) {
 				var uvs = new List<Vector2>();
 				mesh.GetUVs(channel, uvs);
 				if (!uvs.Any()) return;
-				var remapped = RemappedUV(rendererIndex, numberOfRenderer, uvs);
+				var remapped = RemappedUV(index, count, uvs);
 				mesh.SetUVs(channel, remapped.ToList());
 			}
 		}
