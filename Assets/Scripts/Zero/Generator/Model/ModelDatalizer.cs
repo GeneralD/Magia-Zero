@@ -1,7 +1,7 @@
 using UnityEngine;
 using UniVRM10;
 
-namespace Zero.Generator {
+namespace Zero.Generator.Model {
 	public class ModelDatalizer {
 		private readonly VRM10ObjectMeta _meta;
 

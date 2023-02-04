@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-namespace Zero.Generator {
+namespace Zero.Generator.TextureMerger {
 	internal class RenderTextureWrapper : IDisposable {
 		private readonly RenderTexture _renderTexture;
 		private readonly RenderTexture _active;

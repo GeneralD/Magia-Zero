@@ -2,48 +2,33 @@ using System;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Zero.Generator {
+namespace Zero.Generator.Image {
 	public class PhotoBooth : IDisposable {
 		private readonly Camera _camera;
 
-		public enum Position {
-			Front,
-			Back,
-			Top,
-			Bottom,
-			Left,
-			Right,
-			Face,
-		}
-
-		public enum Format {
-			PNG,
-			JPG,
-		}
-
-		public PhotoBooth(Transform subject, Position position) {
+		public PhotoBooth(Transform subject, CameraPosition position) {
 			var n = Mathf.Pow(.5f, .5f);
 			_camera = new GameObject {
 				name = $"{position} Camera",
 				transform = {
 					position = subject.position + position switch {
-						Position.Front => new Vector3(0f, 0.9f, 1f),
-						Position.Back => new Vector3(0f, 0.9f, -1f),
-						Position.Top => new Vector3(0f, 2f, 0f),
-						Position.Bottom => new Vector3(0f, -0.1f, 0f),
-						Position.Left => new Vector3(-1f, 0.9f, 0f),
-						Position.Right => new Vector3(1f, 0.9f, 0f),
-						Position.Face => new Vector3(0f, 1.3f, 1f),
+						CameraPosition.Front => new Vector3(0f, 0.9f, 1f),
+						CameraPosition.Back => new Vector3(0f, 0.9f, -1f),
+						CameraPosition.Top => new Vector3(0f, 2f, 0f),
+						CameraPosition.Bottom => new Vector3(0f, -0.1f, 0f),
+						CameraPosition.Left => new Vector3(-1f, 0.9f, 0f),
+						CameraPosition.Right => new Vector3(1f, 0.9f, 0f),
+						CameraPosition.Face => new Vector3(0f, 1.3f, 1f),
 						_ => throw new ArgumentOutOfRangeException(nameof(position), position, null)
 					},
 					rotation = position switch {
-						Position.Front => new Quaternion(0f, 1f, 0f, 0f),
-						Position.Back => new Quaternion(0f, 0f, 0f, 1f),
-						Position.Top => new Quaternion(n, 0f, 0f, n),
-						Position.Bottom => new Quaternion(-n, 0f, 0f, n),
-						Position.Left => new Quaternion(0f, n, 0f, n),
-						Position.Right => new Quaternion(0f, -n, 0f, n),
-						Position.Face => new Quaternion(0f, 1f, 0f, 0f),
+						CameraPosition.Front => new Quaternion(0f, 1f, 0f, 0f),
+						CameraPosition.Back => new Quaternion(0f, 0f, 0f, 1f),
+						CameraPosition.Top => new Quaternion(n, 0f, 0f, n),
+						CameraPosition.Bottom => new Quaternion(-n, 0f, 0f, n),
+						CameraPosition.Left => new Quaternion(0f, n, 0f, n),
+						CameraPosition.Right => new Quaternion(0f, -n, 0f, n),
+						CameraPosition.Face => new Quaternion(0f, 1f, 0f, 0f),
 						_ => throw new ArgumentOutOfRangeException(nameof(position), position, null)
 					}
 				}
@@ -52,7 +37,7 @@ namespace Zero.Generator {
 			_camera.farClipPlane = 5f;
 			_camera.orthographic = true;
 			_camera.orthographicSize = position switch {
-				Position.Face => .2f,
+				CameraPosition.Face => .2f,
 				_ => 1f
 			};
 		}

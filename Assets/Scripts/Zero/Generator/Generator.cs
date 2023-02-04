@@ -6,7 +6,10 @@ using UnityEngine;
 using UniVRM10;
 using Zero.Generator.Combination;
 using Zero.Generator.Entity;
+using Zero.Generator.FileLocation;
+using Zero.Generator.Image;
 using Zero.Generator.Metadata;
+using Zero.Generator.Model;
 using Zero.Generator.Randomization;
 using Zero.Utility;
 
@@ -57,7 +60,7 @@ namespace Zero.Generator {
 
 			// Automatically destroy all generated things as soon as operation is done
 			using var temporary = new DisposableContainerWrapper(new GameObject("Container"));
-			using var photoBooth = new PhotoBooth(temporary.Container.transform, PhotoBooth.Position.Front);
+			using var photoBooth = new PhotoBooth(temporary.Container.transform, Image.CameraPosition.Front);
 
 			var instances = GeneratedInstances(rootObject, temporary.Container.transform)
 				.Zip(Indices(locationManager), (generated, index) => (generated, index));

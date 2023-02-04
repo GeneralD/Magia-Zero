@@ -4,7 +4,7 @@ using System.Linq;
 using UniGLTF.MeshUtility;
 using UnityEngine;
 
-namespace Zero.Generator {
+namespace Zero.Generator.TextureMerger {
 	public class TextureMerger {
 		private readonly int _atlasSize;
 

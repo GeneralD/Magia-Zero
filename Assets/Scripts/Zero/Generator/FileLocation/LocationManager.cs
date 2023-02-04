@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using Zero.Utility;
 
-namespace Zero.Generator {
+namespace Zero.Generator.FileLocation {
 	public class LocationManager {
 		private const string ImageOutputDirectoryName = "images";
 		private const string ModelOutputDirectoryName = "models";
