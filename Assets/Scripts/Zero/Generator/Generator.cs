@@ -11,6 +11,7 @@ using Zero.Generator.Image;
 using Zero.Generator.Metadata;
 using Zero.Generator.Model;
 using Zero.Generator.Randomization;
+using Zero.Generator.TextureOptimization;
 using Zero.Utility;
 
 namespace Zero.Generator {
@@ -93,13 +94,20 @@ namespace Zero.Generator {
 		private IEnumerable<GameObject> GeneratedInstances(GameObject sample, Transform parent) {
 			var randomizationApplier = new RandomizationApplier(rule.randomizationRules);
 			var combinationChecker = new CombinationChecker(rule.combinationRules);
+			var textureMerger = new TextureMerger();
 
 			while (true) {
 				var instance = Instantiate(sample, parent);
-				instance.transform.position = Vector3.zero;
+				instance.transform.localPosition = Vector3.zero;
 				randomizationApplier.ApplyRandomization(instance);
-				if (combinationChecker.IsValid(instance)) yield return instance;
-				else DestroyImmediate(instance);
+
+				if (!combinationChecker.IsValid(instance)) {
+					DestroyImmediate(instance);
+					continue;
+				}
+
+				textureMerger.Apply(instance);
+				yield return instance;
 			}
 			// ReSharper disable once IteratorNeverReturns
 		}
