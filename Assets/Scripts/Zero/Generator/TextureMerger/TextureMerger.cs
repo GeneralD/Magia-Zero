@@ -6,43 +6,52 @@ using UnityEngine;
 
 namespace Zero.Generator.TextureMerger {
 	public class TextureMerger {
-		private readonly int _atlasSize;
+		private readonly IEnumerable<TargetTexture> _targets;
 
-		public TextureMerger(int atlasSize = 1024 * 4) {
-			_atlasSize = atlasSize;
+		public TextureMerger(params TargetTexture[] targets) {
+			_targets = targets;
+		}
+
+		public TextureMerger() {
+			_targets = new[] { new TargetTexture("_MainTex", 1024 * 2) };
 		}
 
 		public void Apply(GameObject root) {
 			var renderers = root.GetComponentsInChildren<Renderer>();
-			var textures = renderers
-				.Select(renderer => renderer.sharedMaterial.mainTexture)
-				.Distinct()
-				.ToArray();
 
-			var atlas = MakeAtlas(textures);
+			var textureGroups = renderers
+				.SelectMany(r => _targets.Select(target => (target, texture: r.sharedMaterial.GetTexture(target.name))))
+				.GroupBy(t => t.texture)
+				.Select(g => g.First())
+				.GroupBy(t => t.target);
 
-			foreach (var renderer in renderers) {
-				// protect original mesh
-				var mesh = renderer.ReplaceMeshWithCopied();
-				var textureIndex = Array.IndexOf(textures, renderer.sharedMaterial.mainTexture);
-				mesh.RemapUVsForAllChannels(textureIndex, textures.Length);
+			foreach (var group in textureGroups) {
+				var target = group.Key;
+				var textures = group.Select(t => t.texture).ToArray();
+				var atlas = MakeAtlas(textures, target.atlasSize);
+				foreach (var renderer in renderers) {
+					// protect original mesh
+					var mesh = renderer.ReplaceMeshWithCopied();
+					var textureIndex = Array.IndexOf(textures, renderer.sharedMaterial.GetTexture(target.name));
+					mesh.RemapUVsForAllChannels(textureIndex, textures.Length);
 
-				// protect shared (resource) material
-				var material = renderer.ReplaceMaterialsWithCopied();
-				material.mainTexture = atlas;
+					// protect shared (resource) material
+					var material = renderer.ReplaceMaterialsWithCopied();
+					material.SetTexture(target.name, atlas);
+				}
 			}
 		}
 
-		private Texture2D MakeAtlas(IReadOnlyList<Texture> textures) {
+		private Texture2D MakeAtlas(IReadOnlyList<Texture> textures, int atlasSize) {
 			var row = Mathf.CeilToInt(Mathf.Pow(textures.Count(), .5f));
-			var result = new Texture2D(_atlasSize, _atlasSize);
-			var sectionSize = _atlasSize / row;
+			var result = new Texture2D(atlasSize, atlasSize);
+			var sectionSize = atlasSize / row;
 			using var wrapper = new RenderTextureWrapper(sectionSize, sectionSize);
 
 			for (var index = 0; index < textures.Count; index++) {
 				var texture = textures[index];
-				var dstX = index % row * _atlasSize / row;
-				var dstY = index / row * _atlasSize / row;
+				var dstX = index % row * atlasSize / row;
+				var dstY = index / row * atlasSize / row;
 				wrapper.Blit(texture);
 				result.ReadPixels(new Rect(0, 0, sectionSize, sectionSize), dstX, dstY);
 			}
