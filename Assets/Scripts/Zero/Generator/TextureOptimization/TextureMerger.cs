@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using Zero.Extensions;
 
 namespace Zero.Generator.TextureOptimization {
 	public class TextureMerger {
@@ -15,30 +16,36 @@ namespace Zero.Generator.TextureOptimization {
 			var renderers = root.GetComponentsInChildren<Renderer>();
 
 			var textureGroups = renderers
-				.SelectMany(r => _targets.Select(target => (target, texture: r.sharedMaterial.GetTexture(target.name))))
+				.SelectMany(renderer => _targets
+					.Where(target => renderer.sharedMaterial.HasTexture(target.name))
+					.Select(target => (target, texture: renderer.sharedMaterial.GetTexture(target.name))))
 				.GroupBy(t => t.texture)
 				.Select(g => g.First())
 				.GroupBy(t => t.target);
 
-			foreach (var group in textureGroups) {
+			textureGroups.ForEach(group => {
 				var target = group.Key;
 				var textures = group.Select(t => t.texture).ToArray();
 				var atlas = textures.MakeAtlas(target.atlasSize);
-				foreach (var renderer in renderers) {
-					// protect shared (resource) material
-					var material = renderer.ReplaceMaterialsWithCopied();
+				renderers
+					.Where(renderer => renderer.sharedMaterial.HasTexture(target.name))
+					.ForEach(renderer => {
+						// protect shared (resource) material
+						var material = renderer.ReplaceMaterialsWithCopied();
 
-					var index = Array.IndexOf(textures, renderer.sharedMaterial.GetTexture(target.name));
-					material.SetAtlas(atlas, target.name, index, textures.Length);
-				}
-			}
+						var index = Array.IndexOf(textures, material.GetTexture(target.name));
+						material.SetAtlas(atlas, target.name, index, textures.Length);
+					});
+			});
 		}
 	}
 
 	internal static class Extensions {
 		public static Material ReplaceMaterialsWithCopied(this Renderer renderer) {
 			var sharedMaterial = renderer.sharedMaterial;
+			if (sharedMaterial.name.EndsWith(" [[Copy]]")) return sharedMaterial;
 			var material = new Material(sharedMaterial);
+			material.name += " [[Copy]]";
 			material.CopyPropertiesFromMaterial(sharedMaterial);
 			return renderer.sharedMaterial = material;
 		}
