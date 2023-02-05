@@ -30,14 +30,11 @@ namespace Zero.Generator.TextureMerger {
 				var textures = group.Select(t => t.texture).ToArray();
 				var atlas = MakeAtlas(textures, target.atlasSize);
 				foreach (var renderer in renderers) {
-					// protect original mesh
-					var mesh = renderer.ReplaceMeshWithCopied();
-					var textureIndex = Array.IndexOf(textures, renderer.sharedMaterial.GetTexture(target.name));
-					mesh.RemapUVsForAllChannels(textureIndex, textures.Length);
-
 					// protect shared (resource) material
 					var material = renderer.ReplaceMaterialsWithCopied();
-					material.SetTexture(target.name, atlas);
+
+					var index = Array.IndexOf(textures, renderer.sharedMaterial.GetTexture(target.name));
+					material.SetAtlas(atlas, target.name, index, textures.Length);
 				}
 			}
 		}
@@ -69,32 +66,15 @@ namespace Zero.Generator.TextureMerger {
 			return renderer.sharedMaterial = material;
 		}
 
-		public static Mesh ReplaceMeshWithCopied(this Renderer renderer, bool copyBlendShape = true) =>
-			renderer switch {
-				SkinnedMeshRenderer r =>
-					r.sharedMesh = r.sharedMesh.Copy(copyBlendShape),
-				MeshRenderer mr when mr.GetComponent<MeshFilter>() is { } f =>
-					f.sharedMesh = f.sharedMesh.Copy(copyBlendShape),
-				_ => throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null)
-			};
-
-
-		public static void RemapUVsForAllChannels(this Mesh mesh, int index, int count) {
-			for (var channel = 0; channel < 4; channel++) {
-				var uvs = new List<Vector2>();
-				mesh.GetUVs(channel, uvs);
-				if (!uvs.Any()) return;
-				var remapped = RemappedUV(index, count, uvs);
-				mesh.SetUVs(channel, remapped.ToList());
-			}
-		}
-
-		private static IEnumerable<Vector2> RemappedUV(int index, int count, IEnumerable<Vector2> uv) {
-			if (count <= 1) return uv;
-			var row = Mathf.CeilToInt(Mathf.Pow(count, .5f));
-			var rowOffset = index / row;
-			var colOffset = index % row;
-			return uv.Select(v => v / row + new Vector2((float)colOffset / row, (float)rowOffset / row));
+		public static void SetAtlas(this Material material, Texture2D atlas, string name, int index, int length) {
+			// set atlas
+			material.SetTexture(name, atlas);
+			// adjust tilling and offset
+			var row = Mathf.CeilToInt(Mathf.Pow(length, .5f));
+			var xOffset = index % row;
+			var yOffset = index / row;
+			material.SetTextureScale(name, Vector2.one / row);
+			material.SetTextureOffset(name, new Vector2(xOffset, yOffset) / row);
 		}
 	}
 }
