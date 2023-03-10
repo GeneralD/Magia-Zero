@@ -89,8 +89,10 @@ namespace Zero.Generator.TextureOptimization {
 		/// <param name="preferredSize">preferred atlas size</param>
 		/// <returns>an alternative value or same as preferredSize</returns>
 		private static int SuitableAtlasSize(IReadOnlyList<Texture> textures, int row, int preferredSize) {
-			var maxWidth = textures.Select(texture => texture.width).OrderByDescending(w => w).Take(row).Sum();
-			var maxHeight = textures.Select(texture => texture.height).OrderByDescending(h => h).Take(row).Sum();
+			var max = new Func<Func<Texture, int>, int>(f =>
+				textures.Select(f).OrderByDescending(v => v).Take(row).Sum());
+			var maxWidth = max(texture => texture.width);
+			var maxHeight = max(texture => texture.height);
 			var maxSize = Math.Max(maxWidth, maxHeight);
 			var maxSuitableSize = (int)Mathf.Pow(2, Mathf.CeilToInt(Mathf.Log(maxSize, 2)));
 			return Math.Min(preferredSize, maxSuitableSize);
