@@ -642,7 +642,9 @@ Assets/*
 Assets/Scripts/*
 Assets/Editor/*
 !Assets/Scripts
+!Assets/Scripts.meta
 !Assets/Editor
+!Assets/Editor.meta
 !Assets/Scripts/Zero
 !Assets/Editor/Zero
 !Assets/package.json
