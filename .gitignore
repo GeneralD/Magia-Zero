@@ -648,3 +648,4 @@ Assets/Editor/*
 !Assets/Scripts/Zero
 !Assets/Editor/Zero
 !Assets/package.json
+!Assets/package.json.meta
