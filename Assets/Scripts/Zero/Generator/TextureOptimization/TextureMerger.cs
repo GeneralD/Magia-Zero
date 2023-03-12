@@ -7,6 +7,7 @@ using UnityEngine;
 namespace Zero.Generator.TextureOptimization {
 	public class TextureMerger {
 		private readonly IEnumerable<TargetTexture> _targets;
+		private Material _unifiedMaterial;
 
 		public TextureMerger(params TargetTexture[] targets) {
 			_targets = targets;
@@ -28,23 +29,21 @@ namespace Zero.Generator.TextureOptimization {
 			foreach (var group in textureGroups) {
 				var target = group.Key;
 				var textures = group.Select(t => t.texture).ToArray();
-				var atlas = textures.MakeAtlas(target.atlasSize);
+				var atlas = MakeAtlas(textures, target.atlasSize);
 				foreach (var renderer in renderers) {
 					// protect original mesh
-					var mesh = renderer.ReplaceMeshWithCopied();
+					var mesh = ReplaceMeshWithCopied(renderer);
 					var textureIndex = Array.IndexOf(textures, renderer.sharedMaterial.GetTexture(target.name));
-					mesh.RemapUVsForAllChannels(textureIndex, textures.Length);
+					RemapUVsForAllChannels(mesh, textureIndex, textures.Length);
 
 					// protect shared (resource) material
-					var material = renderer.ReplaceMaterialsWithCopied();
+					var material = ReplaceMaterialsWithCopied(renderer);
 					material.SetTexture(target.name, atlas);
 				}
 			}
 		}
-	}
 
-	internal static class Extensions {
-		public static Texture2D MakeAtlas(this IReadOnlyList<Texture> textures, int atlasSize) {
+		private Texture2D MakeAtlas(IReadOnlyList<Texture> textures, int atlasSize) {
 			var row = Mathf.CeilToInt(Mathf.Pow(textures.Count(), .5f));
 			var result = new Texture2D(atlasSize, atlasSize);
 			var sectionSize = atlasSize / row;
@@ -62,16 +61,10 @@ namespace Zero.Generator.TextureOptimization {
 			return result;
 		}
 
-		public static Material ReplaceMaterialsWithCopied(this Renderer renderer) {
-			var sharedMaterial = renderer.sharedMaterial;
-			if (sharedMaterial.name.EndsWith(" [[Copy]]")) return sharedMaterial;
-			var material = new Material(sharedMaterial);
-			material.name += " [[Copy]]";
-			material.CopyPropertiesFromMaterial(sharedMaterial);
-			return renderer.sharedMaterial = material;
-		}
+		private Material ReplaceMaterialsWithCopied(Renderer renderer) =>
+			renderer.sharedMaterial = _unifiedMaterial ??= new Material(renderer.sharedMaterial);
 
-		public static Mesh ReplaceMeshWithCopied(this Renderer renderer, bool copyBlendShape = true) =>
+		private Mesh ReplaceMeshWithCopied(Renderer renderer, bool copyBlendShape = true) =>
 			renderer switch {
 				SkinnedMeshRenderer r =>
 					r.sharedMesh = r.sharedMesh.Copy(copyBlendShape),
@@ -81,16 +74,16 @@ namespace Zero.Generator.TextureOptimization {
 			};
 
 
-		public static void RemapUVsForAllChannels(this Mesh mesh, int index, int count) {
+		private void RemapUVsForAllChannels(Mesh mesh, int index, int count) {
 			for (var channel = 0; channel < 4; channel++) {
 				var uvs = new List<Vector2>();
 				mesh.GetUVs(channel, uvs);
 				if (!uvs.Any()) return;
-				mesh.SetUVs(channel, uvs.Remapped(index, count));
+				mesh.SetUVs(channel, Remapped(uvs, index, count));
 			}
 		}
 
-		private static List<Vector2> Remapped(this List<Vector2> uv, int index, int count) {
+		private List<Vector2> Remapped(List<Vector2> uv, int index, int count) {
 			if (count <= 1) return uv;
 			var row = Mathf.CeilToInt(Mathf.Pow(count, .5f));
 			var rowOffset = index / row;
