@@ -11,9 +11,12 @@ namespace Zero.Generator.TextureOptimization.Atlas {
 		private readonly IAtlasSection _section3;
 		private readonly IAtlasSection _section4;
 
-		internal Sectioned(IReadOnlyCollection<IAtlasSection> sections) : this(sections.First(),
+		internal Sectioned(IReadOnlyCollection<IAtlasSection> sections) : this(
+			sections.First(),
 			sections.ElementAtOrDefault(1),
-			sections.ElementAtOrDefault(2), sections.ElementAtOrDefault(3)) { }
+			sections.ElementAtOrDefault(2),
+			sections.ElementAtOrDefault(3)
+		) { }
 
 		private Sectioned(
 			IAtlasSection section1,
@@ -36,20 +39,22 @@ namespace Zero.Generator.TextureOptimization.Atlas {
 
 		public Texture2D Image() {
 			var result = new Texture2D((int)Size().x, (int)Size().y);
-			using var wrapper = new RenderTextureWrapper((int)Size().x, (int)Size().y);
+			var sw = (int)_section1.Size().x;
+			var sh = (int)_section1.Size().y;
+			using var wrapper = new RenderTextureWrapper(sw, sh);
 			var rect = new Rect(Vector2.zero, _section1.Size());
-
-			var destX = (int)_section1.Size().x;
-			var destY = (int)_section1.Size().y;
 
 			wrapper.Blit(_section1.Image());
 			result.ReadPixels(rect, 0, 0);
+
 			wrapper.Blit(_section2.Image());
-			result.ReadPixels(rect, destX, 0);
+			result.ReadPixels(rect, sw, 0);
+
 			wrapper.Blit(_section3.Image());
-			result.ReadPixels(rect, 0, destY);
+			result.ReadPixels(rect, 0, sh);
+
 			wrapper.Blit(_section4.Image());
-			result.ReadPixels(rect, destX, destY);
+			result.ReadPixels(rect, sw, sh);
 
 			result.Apply();
 			return result;
