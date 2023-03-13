@@ -3,68 +3,78 @@ using System.Collections.Generic;
 using System.Linq;
 using UniGLTF.MeshUtility;
 using UnityEngine;
+using UnityEngine.Assertions;
+using Zero.Extensions;
+using Zero.Generator.TextureOptimization.Atlas;
 
 namespace Zero.Generator.TextureOptimization {
 	public class TextureMerger {
-		private readonly IEnumerable<TargetTexture> _targets;
-		private Material _unifiedMaterial;
+		private readonly int _maxAtlasSize;
+		private static readonly int MainTex = Shader.PropertyToID("_MainTex");
+		private static readonly int NormalMapSampler = Shader.PropertyToID("_NormalMapSampler");
 
-		public TextureMerger(params TargetTexture[] targets) {
-			_targets = targets;
+		public TextureMerger(int maxAtlasSize = 4096) {
+			Assert.IsTrue(maxAtlasSize.IsPowOf2());
+			_maxAtlasSize = maxAtlasSize;
 		}
 
-		public TextureMerger() {
-			_targets = new[] { new TargetTexture("_MainTex", 1024 * 2) };
+		private class RendererElement {
+			public Texture MainTexture;
+			public Texture NormalTexture;
+			public Mesh Mesh;
 		}
 
 		public void Apply(GameObject root) {
 			var renderers = root.GetComponentsInChildren<Renderer>();
 
-			var textureGroups = renderers
-				.SelectMany(r => _targets.Select(target => (target, texture: r.sharedMaterial.GetTexture(target.name))))
-				.GroupBy(t => t.texture)
-				.Select(g => g.First())
-				.GroupBy(t => t.target);
+			var rendererElements = renderers
+				.Where(renderer => renderer.sharedMaterial.HasTexture("_MainTex"))
+				.Select(renderer => {
+					var mainTexture = renderer.sharedMaterial.GetTexture(MainTex);
+					return new RendererElement {
+						MainTexture = mainTexture,
+						NormalTexture = renderer.sharedMaterial.HasTexture(NormalMapSampler)
+							? renderer.sharedMaterial.GetTexture(NormalMapSampler)
+							: new Texture2D(mainTexture.width, mainTexture.height),
+						Mesh = renderer.ReplaceMeshWithCopied(),
+					};
+				})
+				// distinct by MainTexture
+				.GroupBy(element => element.MainTexture)
+				.Select(x => x.First())
+				.ToArray();
 
-			foreach (var group in textureGroups) {
-				var target = group.Key;
-				var textures = group.Select(t => t.texture).ToArray();
-				var atlas = MakeAtlas(textures, target.atlasSize);
-				foreach (var renderer in renderers) {
-					// protect original mesh
-					var mesh = ReplaceMeshWithCopied(renderer);
-					var textureIndex = Array.IndexOf(textures, renderer.sharedMaterial.GetTexture(target.name));
-					RemapUVsForAllChannels(mesh, textureIndex, textures.Length);
+			// Make texture atlas
+			var mainAtlasSection =
+				AtlasSectionFactory.Create(rendererElements.Select(element => element.MainTexture as Texture2D));
+			var normalAtlasSection =
+				AtlasSectionFactory.Create(rendererElements.Select(element => element.NormalTexture as Texture2D));
 
-					// protect shared (resource) material
-					var material = ReplaceMaterialsWithCopied(renderer);
-					material.SetTexture(target.name, atlas);
-				}
+			Assert.IsTrue(mainAtlasSection.Size().x <= _maxAtlasSize);
+			Assert.IsTrue(normalAtlasSection.Size().x <= _maxAtlasSize);
+
+			// Replace all materials with an unified material
+			Material unifiedMaterial = null;
+			foreach (var renderer in renderers)
+				renderer.sharedMaterial = unifiedMaterial ??= new Material(renderer.sharedMaterial);
+
+			// Set texture atlas
+			if (unifiedMaterial != null)
+				unifiedMaterial.SetTexture(MainTex, mainAtlasSection.Image());
+			if (unifiedMaterial != null)
+				unifiedMaterial.SetTexture(NormalMapSampler, normalAtlasSection.Image());
+
+			// Remap UVs (first channel)
+			foreach (var element in rendererElements) {
+				var mappings = mainAtlasSection.Mappings();
+				var mapping = mappings.First(mapping => mapping.Texture == element.MainTexture);
+				element.Mesh.RemapUVs(0, mapping.Offset, mapping.Scale);
 			}
 		}
+	}
 
-		private Texture2D MakeAtlas(IReadOnlyList<Texture> textures, int atlasSize) {
-			var row = Mathf.CeilToInt(Mathf.Pow(textures.Count(), .5f));
-			var result = new Texture2D(atlasSize, atlasSize);
-			var sectionSize = atlasSize / row;
-			using var wrapper = new RenderTextureWrapper(sectionSize, sectionSize);
-
-			for (var index = 0; index < textures.Count; index++) {
-				var texture = textures[index];
-				var dstX = index % row * atlasSize / row;
-				var dstY = index / row * atlasSize / row;
-				wrapper.Blit(texture);
-				result.ReadPixels(new Rect(0, 0, sectionSize, sectionSize), dstX, dstY);
-			}
-
-			result.Apply();
-			return result;
-		}
-
-		private Material ReplaceMaterialsWithCopied(Renderer renderer) =>
-			renderer.sharedMaterial = _unifiedMaterial ??= new Material(renderer.sharedMaterial);
-
-		private Mesh ReplaceMeshWithCopied(Renderer renderer, bool copyBlendShape = true) =>
+	internal static class Extensions {
+		public static Mesh ReplaceMeshWithCopied(this Renderer renderer, bool copyBlendShape = true) =>
 			renderer switch {
 				SkinnedMeshRenderer r =>
 					r.sharedMesh = r.sharedMesh.Copy(copyBlendShape),
@@ -73,24 +83,15 @@ namespace Zero.Generator.TextureOptimization {
 				_ => throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null)
 			};
 
-
-		private void RemapUVsForAllChannels(Mesh mesh, int index, int count) {
-			for (var channel = 0; channel < 4; channel++) {
-				var uvs = new List<Vector2>();
-				mesh.GetUVs(channel, uvs);
-				if (!uvs.Any()) return;
-				mesh.SetUVs(channel, Remapped(uvs, index, count));
-			}
-		}
-
-		private List<Vector2> Remapped(List<Vector2> uv, int index, int count) {
-			if (count <= 1) return uv;
-			var row = Mathf.CeilToInt(Mathf.Pow(count, .5f));
-			var rowOffset = index / row;
-			var colOffset = index % row;
-			return uv
-				.Select(v => (v + new Vector2(colOffset, rowOffset)) / row)
+		public static void RemapUVs(this Mesh mesh, int channel, Vector2 offset, float scale) {
+			Assert.IsTrue(scale <= 1);
+			var uvs = new List<Vector2>();
+			mesh.GetUVs(channel, uvs);
+			if (!uvs.Any()) return;
+			var remapped = uvs
+				.Select(v => (v + offset) * scale)
 				.ToList();
+			mesh.SetUVs(channel, remapped);
 		}
 	}
 }
