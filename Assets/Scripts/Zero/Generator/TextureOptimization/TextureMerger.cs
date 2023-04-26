@@ -18,7 +18,7 @@ namespace Zero.Generator.TextureOptimization {
 			_maxAtlasSize = maxAtlasSize;
 		}
 
-		private class RendererElement {
+		private class RendererSet {
 			public Texture MainTexture;
 			public Texture NormalTexture;
 			public Mesh Mesh;
@@ -27,11 +27,11 @@ namespace Zero.Generator.TextureOptimization {
 		public void Apply(GameObject root) {
 			var renderers = root.GetComponentsInChildren<Renderer>();
 
-			var rendererElements = renderers
+			var sets = renderers
 				.Where(renderer => renderer.sharedMaterial.HasTexture("_MainTex"))
 				.Select(renderer => {
 					var mainTexture = renderer.sharedMaterial.GetTexture(MainTex);
-					return new RendererElement {
+					return new RendererSet {
 						MainTexture = mainTexture,
 						NormalTexture = renderer.sharedMaterial.HasTexture(NormalMapSampler)
 							? renderer.sharedMaterial.GetTexture(NormalMapSampler)
@@ -46,9 +46,9 @@ namespace Zero.Generator.TextureOptimization {
 
 			// Make texture atlas
 			var mainAtlasSection =
-				AtlasSectionFactory.Create(rendererElements.Select(element => element.MainTexture as Texture2D));
+				AtlasSectionFactory.Create(sets.Select(element => element.MainTexture as Texture2D));
 			var normalAtlasSection =
-				AtlasSectionFactory.Create(rendererElements.Select(element => element.NormalTexture as Texture2D));
+				AtlasSectionFactory.Create(sets.Select(element => element.NormalTexture as Texture2D));
 
 			Assert.IsTrue(mainAtlasSection.Size().x <= _maxAtlasSize);
 			Assert.IsTrue(normalAtlasSection.Size().x <= _maxAtlasSize);
@@ -65,10 +65,11 @@ namespace Zero.Generator.TextureOptimization {
 				unifiedMaterial.SetTexture(NormalMapSampler, normalAtlasSection.Image());
 
 			// Remap UVs (first channel)
-			foreach (var element in rendererElements) {
-				var mappings = mainAtlasSection.Mappings();
-				var mapping = mappings.First(mapping => mapping.Texture == element.MainTexture);
-				element.Mesh.RemapUVs(0, mapping.Offset, mapping.Scale);
+			var mappings = mainAtlasSection.Mappings().ToArray();
+			var atlasSize = mainAtlasSection.Size();
+			foreach (var set in sets) {
+				var mapping = mappings.First(mapping => mapping.Texture == set.MainTexture);
+				set.Mesh.RemapUVs(0, atlasSize, mapping.Offset, mapping.Scale);
 			}
 		}
 	}
@@ -83,13 +84,21 @@ namespace Zero.Generator.TextureOptimization {
 				_ => throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null)
 			};
 
-		public static void RemapUVs(this Mesh mesh, int channel, Vector2 offset, float scale) {
+		public static void RemapUVs(this Mesh mesh, int channel, Vector2 atlasSize, Vector2 offset, float scale) {
 			Assert.IsTrue(scale <= 1);
 			var uvs = new List<Vector2>();
 			mesh.GetUVs(channel, uvs);
 			if (!uvs.Any()) return;
+			var normalizedOffset = offset / atlasSize;
 			var remapped = uvs
-				.Select(v => (v + offset) * scale)
+				.Select(v => v * scale + normalizedOffset)
+				// TODO: Delete
+				.Select(vector2 => {
+					Debug.Log(
+						$"UV: {vector2}, scale: {scale}, offset: {offset}, atlasSize: {atlasSize}, normalizedOffset: {normalizedOffset}");
+					return vector2;
+				})
+				// TODO: to here
 				.ToList();
 			mesh.SetUVs(channel, remapped);
 		}
