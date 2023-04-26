@@ -73,27 +73,10 @@ namespace Zero.Generator.TextureOptimization {
 			var emissionAtlasSection =
 				AtlasSectionFactory.Create(sets.Select(element => element.EmissionTexture as Texture2D));
 
+			// Validate them
 			Assert.IsTrue(mainAtlasSection.Size().x <= _maxAtlasSize);
 			Assert.IsTrue(bumpAtlasSection.Size().x <= _maxAtlasSize);
 			Assert.IsTrue(emissionAtlasSection.Size().x <= _maxAtlasSize);
-
-			var materials =
-				renderers
-					.SelectMany(renderer => renderer.materials)
-					.ToArray();
-
-			// Replace textures with atlas
-			materials
-				.Where(material => material.HasTexture(MainTexID))
-				.ForEach(material => material.SetTexture(MainTexID, mainAtlasSection.Image()));
-
-			materials
-				.Where(material => material.HasTexture(BumpTexID))
-				.ForEach(material => material.SetTexture(BumpTexID, bumpAtlasSection.Image()));
-
-			materials
-				.Where(material => material.HasTexture(EmissionTexID))
-				.ForEach(material => material.SetTexture(EmissionTexID, emissionAtlasSection.Image()));
 
 			// All atlas mappings have to be same, so we can use main atlas as a sample
 			var mappings = mainAtlasSection.Mappings().ToArray();
@@ -109,6 +92,23 @@ namespace Zero.Generator.TextureOptimization {
 					var mesh = renderer.ReplaceMeshWithCopied();
 					mesh.RemapUVs(0, atlasSize, mapping.Offset, mapping.Scale);
 				});
+
+			var materials = renderers
+				.SelectMany(renderer => renderer.materials)
+				.ToArray();
+
+			// Replace textures with atlas
+			materials
+				.Where(material => material.HasTexture(MainTexID))
+				.ForEach(material => material.SetTexture(MainTexID, mainAtlasSection.Image()));
+
+			materials
+				.Where(material => material.HasTexture(BumpTexID))
+				.ForEach(material => material.SetTexture(BumpTexID, bumpAtlasSection.Image()));
+
+			materials
+				.Where(material => material.HasTexture(EmissionTexID))
+				.ForEach(material => material.SetTexture(EmissionTexID, emissionAtlasSection.Image()));
 		}
 	}
 
@@ -127,7 +127,7 @@ namespace Zero.Generator.TextureOptimization {
 			var uvs = new List<Vector2>();
 			mesh.GetUVs(channel, uvs);
 			if (!uvs.Any()) return;
-			var normalizedOffset = Vector2.up - offset / atlasSize;
+			var normalizedOffset = offset / atlasSize;
 			var remapped = uvs
 				.Select(uv => uv * scale + normalizedOffset)
 				.ToList();
