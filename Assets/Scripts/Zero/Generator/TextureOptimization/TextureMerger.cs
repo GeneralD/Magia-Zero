@@ -1,8 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using JetBrains.Annotations;
-using UniGLTF.MeshUtility;
 using UnityEngine;
 using UnityEngine.Assertions;
 using Zero.Extensions;
@@ -12,66 +8,30 @@ namespace Zero.Generator.TextureOptimization {
 	public class TextureMerger {
 		private readonly int _maxAtlasSize;
 
-		private static readonly int MainTexID = Shader.PropertyToID("_MainTex");
-		private static readonly int BumpTexID = Shader.PropertyToID("_BumpMap");
-		private static readonly int EmissionTexID = Shader.PropertyToID("_EmissionMap");
-
 		public TextureMerger(int maxAtlasSize = 4096) {
 			Assert.IsTrue(maxAtlasSize.IsPowOf2());
 			_maxAtlasSize = maxAtlasSize;
 		}
 
-		private class TextureRelation {
-			public Texture MainTexture;
-
-			[CanBeNull]
-			public Texture BumpTexture;
-
-			[CanBeNull]
-			public Texture EmissionTexture;
-		}
-
 		public void Apply(GameObject root) {
 			var renderers = root
 				.GetComponentsInChildren<Renderer>()
-				.Where(renderer => renderer.materials.Any(material => material.HasTexture(MainTexID)))
+				.Where(renderer => renderer.materials.Any(material => material.HasTexture(TextureGroup.MainTexID)))
 				.ToArray();
 
-			var sets = renderers
-				.Select(renderer => {
-					var mainTexture = renderer.materials
-						.First(material => material.HasTexture(MainTexID))
-						.GetTexture(MainTexID);
-					return new TextureRelation {
-						MainTexture = mainTexture,
-						BumpTexture = renderer.materials
-							              .FirstOrDefault(m => m.HasTexture(BumpTexID))?
-							              .GetTexture(BumpTexID)
-						              // allocate blank section
-						              ?? new Texture2D(mainTexture.width, mainTexture.height),
-						EmissionTexture = renderer.sharedMaterials
-							                  .FirstOrDefault(m => m.HasTexture(EmissionTexID))?
-							                  .GetTexture(EmissionTexID)
-						                  // allocate blank section
-						                  ?? new Texture2D(mainTexture.width, mainTexture.height),
-					};
-				})
-				// distinct by MainTexture
-				.GroupBy(element => element.MainTexture)
-				.Select(group => group.Aggregate((lhs, rhs) => new TextureRelation {
-					MainTexture = lhs.MainTexture,
-					BumpTexture = lhs.BumpTexture ? lhs.BumpTexture : rhs.BumpTexture,
-					EmissionTexture = lhs.EmissionTexture ? lhs.EmissionTexture : rhs.EmissionTexture,
-				}))
+			var textureGroups = renderers
+				.Select(renderer => new TextureGroup(renderer))
+				.GroupBy(group => group.MainTexture)
+				.Select(group => group.Aggregate(TextureGroup.Merged))
 				.ToArray();
 
 			// Make texture atlas
 			var mainAtlasSection =
-				AtlasSectionFactory.Create(sets.Select(element => element.MainTexture as Texture2D));
+				AtlasSectionFactory.Create(textureGroups.Select(group => group.MainTexture as Texture2D));
 			var bumpAtlasSection =
-				AtlasSectionFactory.Create(sets.Select(element => element.BumpTexture as Texture2D));
+				AtlasSectionFactory.Create(textureGroups.Select(group => group.BumpTexture as Texture2D));
 			var emissionAtlasSection =
-				AtlasSectionFactory.Create(sets.Select(element => element.EmissionTexture as Texture2D));
+				AtlasSectionFactory.Create(textureGroups.Select(group => group.EmissionTexture as Texture2D));
 
 			// Validate them
 			Assert.IsTrue(mainAtlasSection.Size().x <= _maxAtlasSize);
@@ -86,8 +46,8 @@ namespace Zero.Generator.TextureOptimization {
 			renderers
 				.ForEach(renderer => {
 					var mainTexture = renderer.materials
-						.First(material => material.HasTexture(MainTexID))
-						.GetTexture(MainTexID);
+						.First(material => material.HasTexture(TextureGroup.MainTexID))
+						.GetTexture(TextureGroup.MainTexID);
 					var mapping = mappings.First(map => map.Texture == mainTexture);
 					var mesh = renderer.ReplaceMeshWithCopied();
 					mesh.RemapUVs(0, atlasSize, mapping.Offset, mapping.Scale);
@@ -99,39 +59,16 @@ namespace Zero.Generator.TextureOptimization {
 
 			// Replace textures with atlas
 			materials
-				.Where(material => material.HasTexture(MainTexID))
-				.ForEach(material => material.SetTexture(MainTexID, mainAtlasSection.Image()));
+				.Where(material => material.HasTexture(TextureGroup.MainTexID))
+				.ForEach(material => material.SetTexture(TextureGroup.MainTexID, mainAtlasSection.Image()));
 
 			materials
-				.Where(material => material.HasTexture(BumpTexID))
-				.ForEach(material => material.SetTexture(BumpTexID, bumpAtlasSection.Image()));
+				.Where(material => material.HasTexture(TextureGroup.BumpTexID))
+				.ForEach(material => material.SetTexture(TextureGroup.BumpTexID, bumpAtlasSection.Image()));
 
 			materials
-				.Where(material => material.HasTexture(EmissionTexID))
-				.ForEach(material => material.SetTexture(EmissionTexID, emissionAtlasSection.Image()));
-		}
-	}
-
-	internal static class Extensions {
-		public static Mesh ReplaceMeshWithCopied(this Renderer renderer, bool copyBlendShape = true) =>
-			renderer switch {
-				SkinnedMeshRenderer r =>
-					r.sharedMesh = r.sharedMesh.Copy(copyBlendShape),
-				MeshRenderer mr when mr.GetComponent<MeshFilter>() is { } f =>
-					f.sharedMesh = f.sharedMesh.Copy(copyBlendShape),
-				_ => throw new ArgumentOutOfRangeException(nameof(renderer), renderer, null)
-			};
-
-		public static void RemapUVs(this Mesh mesh, int channel, Vector2 atlasSize, Vector2 offset, float scale) {
-			Assert.IsTrue(scale <= 1);
-			var uvs = new List<Vector2>();
-			mesh.GetUVs(channel, uvs);
-			if (!uvs.Any()) return;
-			var normalizedOffset = offset / atlasSize;
-			var remapped = uvs
-				.Select(uv => uv * scale + normalizedOffset)
-				.ToList();
-			mesh.SetUVs(channel, remapped);
+				.Where(material => material.HasTexture(TextureGroup.EmissionTexID))
+				.ForEach(material => material.SetTexture(TextureGroup.EmissionTexID, emissionAtlasSection.Image()));
 		}
 	}
 }
