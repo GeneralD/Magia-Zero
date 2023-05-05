@@ -6,9 +6,9 @@ namespace Zero.Generator.Entity {
 	public class TargetSubject {
 		public string name;
 		public bool useRegex = true;
-		public bool invertMatch = false;
+		public bool invertMatch;
 
 		public bool IsMatch(string text)
-			=> invertMatch != new Regex(useRegex ? name : $"^{name}$").IsMatch(text);
+			=> invertMatch != (useRegex ? new Regex(name).IsMatch(text) : name == text);
 	}
 }
